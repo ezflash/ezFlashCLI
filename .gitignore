@@ -1,1 +1,5 @@
 **__pycache__
+build
+dist
+docs/_build
+ezFlashCLI.egg-info

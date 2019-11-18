@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-from setuptools import setup
+from setuptools import setup,find_packages
 import getpass
 
 with open('README.md') as readme_file:
@@ -28,12 +28,13 @@ with open('README.md') as readme_file:
 
 
 requirements = [
-    'pyserial',
-    
+
 ]
+
 test_requirements = [
     # TODO: put package test requirements here
 ]
+
 
 setup(
     name='ezFlashCLI',
@@ -43,11 +44,8 @@ setup(
     author="zflash",
     author_email='info@ezflash.org',
     url='https://github.com/ezflash/ezFlashCLI.git',
-    packages=[
-        'ezFlashCLI',
-    ],
+    packages=find_packages(),
     package_dir={'ezFlashCLI': 'ezFlashCLI'},
-    package_data={'ezFlashCLI': ['ezFlashCLI/*.bin']},
     include_package_data=True,
     install_requires=requirements,
     dependency_links=[],
@@ -67,7 +65,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     test_suite='tests',
-    scripts=['ezFlashCLI.py'],
+    scripts=['Scripts/ezFlashCLI'],
 
     tests_require=test_requirements
 )

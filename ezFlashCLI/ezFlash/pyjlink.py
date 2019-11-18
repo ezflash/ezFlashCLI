@@ -151,7 +151,8 @@ class pyjlink(object):
         try:
             self.jl = CDLL(self.library)
         except:
-            raise pyJLinkException('Error loading J-Link DLL')
+            logging.error('Error loading J-Link DLL')
+            sys.exit(1)
         
         self.logger.debug('J-Link library loaded')
         

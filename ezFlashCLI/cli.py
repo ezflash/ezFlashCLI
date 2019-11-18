@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # The MIT License (MIT)
 # Copyright (c) 2019 ezflash
 # 
@@ -27,8 +28,8 @@ import logging
 import sys
 from pathlib import Path
 
-from ezFlash.pyjlink import *
-from ezFlash.smartbond.smartbondDevices import *
+from ezFlashCLI.ezFlash.pyjlink import *
+from ezFlashCLI.ezFlash.smartbond.smartbondDevices import *
 
 import argparse
 
@@ -42,7 +43,7 @@ class ezFlashCLI():
         self.argument_parser()
 
         # load the flash database
-        with open('flash_database.json') as json_file:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'flash_database.json')) as json_file:
             self.flash_db = json.load(json_file)
 
             json_file.close()
@@ -255,7 +256,7 @@ class ezFlashCLI():
         self.args = self.parser.parse_args()
 
 
-if __name__ == "__main__" and __package__ is None:
+if __name__ == "__main__":
     
     ezFlashCLI()
     

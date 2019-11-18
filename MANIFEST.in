@@ -1,0 +1,2 @@
+include ezFlashCLI/flash_database.json
+recursive-include  ezFlashCLI/third-party *
