@@ -1,0 +1,124 @@
+{
+    "date": "1566474590175",
+    "flash_configurations":  [
+        {
+            "name": "P25Q80H",
+            "flash_manufacturer": "85",
+            "flash_device_type": "60",
+            "flash_density": "14",
+            "flash_size": "0x100000",
+            "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x66",
+            "flash_write_config_command": "0x7"
+        },
+        {
+            "name": "P25Q32LE",
+            "flash_manufacturer": "85",
+            "flash_device_type": "60",
+            "flash_density": "16",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x66",
+            "flash_write_config_command": "0x7"
+        },
+        {
+            "name": "EN25S16B",
+            "flash_manufacturer": "1C",
+            "flash_device_type": "38",
+            "flash_density": "15",
+            "flash_size": "0x200000",
+            "flash_burstcmda_reg_value": "0xA8A000EB",
+            "flash_burstcmdb_reg_value": "0x00000026",
+            "flash_write_config_command": "0x01 0x00 0x07"
+        },
+        {
+            "name": "EN25S20A",
+            "flash_id": "0x1C3812",
+            "flash_manufacturer": "1C",
+            "flash_device_type": "38",
+            "flash_density": "12",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xA8A000EB",
+            "flash_burstcmdb_reg_value": "0x00000026",
+            "flash_write_config_command": "0x01 0x00 0x07"
+        },
+        {
+            "name": "W25Q128JW",
+            "flash_manufacturer": "EF",
+            "flash_device_type": "60",
+            "flash_density": "18",
+            "flash_size": "0x100000",
+            "flash_burstcmda_reg_value": "0xa820F0eb",
+            "flash_burstcmdb_reg_value": "0x00000026",
+            "flash_write_config_command": "0x31 0x02 0x07"
+        },
+        {
+            "name": "MX25U3235F",
+            "flash_manufacturer": "C2",
+            "flash_device_type": "25",
+            "flash_density": "36",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xa8a500eb",
+            "flash_burstcmdb_reg_value": "0x00000066",
+            "flash_write_config_command": "0x01 0x40 0x07"
+        },
+        {
+            "name": "W25Q80EW",
+            "flash_manufacturer": "EF",
+            "flash_device_type": "60",
+            "flash_density": "14",
+            "flash_size": "0x100000",
+            "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x00000066",
+            "flash_write_config_command": "0x31 0x02 0x07"
+        },
+        {
+            "name": "W25Q32JW",
+            "flash_manufacturer": "EF",
+            "flash_device_type": "60",
+            "flash_density": "16",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x00000066",
+            "flash_write_config_command": "0x31 0x02 0x07"
+        },
+        {
+            "name": "IS25WP032",
+            "flash_manufacturer": "9D",
+            "flash_device_type": "70",
+            "flash_density": "16",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x00000066",
+            "flash_write_config_command": "0x31 0x02 0x07"
+        },
+        {
+            "name": "GD25LE32",
+            "flash_manufacturer": "C8",
+            "flash_device_type": "60",
+            "flash_density": "16",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x00000066",
+            "flash_write_config_command": "0x01 0x00 0x02 0x07"
+        },
+        {
+            "name": "GD25LE16",
+            "flash_manufacturer": "C8",
+            "flash_device_type": "60",
+            "flash_density": "15",
+            "flash_size": "0x200000",
+            "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x00000066",
+            "flash_write_config_command": "0x01 0x00 0x02 0x07"
+        },
+        {
+            "name": "MX25R2035F",
+            "flash_manufacturer": "C2",
+            "flash_device_type": "28",
+            "flash_density": "12",
+            "flash_size": "0x40000"
+        }
+
+    ]
+}
