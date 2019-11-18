@@ -21,4 +21,4 @@ The tool relies on Segger J-Link™ library to control the Smartbond SWD interfa
 
 ## Example
 
-> ezFlashCLI.py erase_flash
+> ezFlashCLI erase_flash
