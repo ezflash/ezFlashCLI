@@ -21,7 +21,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.1-dev"
+__version__ = "0.0.2"
 
 
 import logging 
@@ -42,6 +42,8 @@ class ezFlashCLI():
         # parse the command line arguments
         self.argument_parser()
 
+        
+
         # load the flash database
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'flash_database.json')) as json_file:
             self.flash_db = json.load(json_file)
@@ -55,6 +57,9 @@ class ezFlashCLI():
         else:
             logging.basicConfig(level=logging.INFO)
             
+
+        logging.info("{} v{}".format(self.__class__.__name__,__version__))
+        logging.info("By using the program you accept the SEGGER J-link™ license")
 
         #list the jlink interfaces
         if self.args.version:
@@ -125,6 +130,25 @@ class ezFlashCLI():
                 da.link.reset()
                 da.flash_program_data(fileData,self.args.addr)
                 fp.close()
+
+        elif self.args.operation == 'read_flash':
+
+            self.probeDevice()
+            self.probeFlash()
+            da =  eval(self.deviceType)()
+            da.connect(self.args.jlink)
+            da.link.reset()
+            data = da.read_flash(self.args.addr,self.args.length)
+
+
+            current_address = self.args.addr
+            line_width = 16
+            while len(data):
+                dataByes = ' '.join('{:02x}'.format(x) for x in data[:line_width])
+                logging.info('{:08X}: {}'.format(current_address,dataByes))
+                data = data[line_width:]
+                current_address += line_width
+
 
 
         elif self.args.operation ==  'image_flash':
@@ -246,6 +270,11 @@ class ezFlashCLI():
 
         flash_parser.add_argument('addr',type=lambda x: int(x,0), help='Address in the flash area')
         flash_parser.add_argument('filename', help='Binary file path')
+
+        flash_parser = self.subparsers.add_parser('read_flash',help='read data at specified address and length')
+
+        flash_parser.add_argument('addr',type=lambda x: int(x,0), help='Address in the flash area')
+        flash_parser.add_argument('length',type=lambda x: int(x,0), help='number of bytes to read')
 
         flash_parser = self.subparsers.add_parser('image_flash',help='Write the flash binary')
         flash_parser.add_argument('filename', help='Binary file path')

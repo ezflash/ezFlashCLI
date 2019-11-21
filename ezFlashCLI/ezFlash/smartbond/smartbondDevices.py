@@ -796,6 +796,10 @@ class da1469x(da1468x_da1469x):
         buff += b'\xFF' * (self.PRODUCT_HEADER_SIZE - len(buff))
         return buff
 
+    def read_flash(self, address, length):
+        return(self.link.rd_mem(8,self.FLASH_ARRAY_BASE + address, length))
+
+
     def read_product_header(self):
         dataArray = self.link.rd_mem(8,self.FLASH_ARRAY_BASE,self.PRODUCT_HEADER_SIZE)
 
