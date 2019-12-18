@@ -1,0 +1,13 @@
+language: python
+
+python:
+  - 3.2
+  - 3.3
+  - 3.4
+  - 3.5
+  - 3.6
+  - pypy
+  - pypy3
+
+script:
+  - python setup.py install
