@@ -23,6 +23,8 @@
 from setuptools import setup,find_packages
 import getpass
 
+from ezFlashCLI.cli import __version__
+
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
@@ -38,7 +40,7 @@ test_requirements = [
 
 setup(
     name='ezFlashCLI',
-    version='0.0.1',
+    version=__version__,
     description="Command line tool to manipulate microcontroller flash",
     long_description=readme,
     author="zflash",

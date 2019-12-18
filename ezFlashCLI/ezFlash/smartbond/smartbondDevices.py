@@ -52,6 +52,7 @@ class HW_QSPI_BUS_MODE(IntEnum):
 class HW_QSPI_COMMON_CMD(IntEnum):
     WRITE_STATUS_REGISTER =      0x01,
     PAGE_PROGRAM          =      0x02,
+    READ_DATA             =      0x03,
     WRITE_DISABLE         =      0x04,
     READ_STATUS_REGISTER  =      0x05,
     WRITE_ENABLE          =      0x06,
@@ -144,6 +145,8 @@ class da1453x_da1458x(da14xxx):
 
 class da14531(da1453x_da1458x):
     
+    FLASH_ARRAY_BASE    = 0x16000000
+
     CLK_AMBA_REG        = 0x50000000
     SET_FREEZE_REG      = 0x50003300
     PAD_LATCH_REG       = 0x5000030C
@@ -161,6 +164,8 @@ class da14531(da1453x_da1458x):
     SPI_CS_CONFIG_REG   = 0x50001224
 
     P0_DATA_REG         = 0x50003000
+    P00_MODE_REG        = 0x50003006
+    P00_MODE_REG_RESET  = 0x00000200
     
     SPI_PORT            = 0
     SPI_CLK_PIN         = 4
@@ -325,9 +330,19 @@ class da14531(da1453x_da1458x):
         deviceId = self.spi_access8(0xFF)
         density = self.spi_access8(0xFF)
         self.spi_cs_high()
-
-
         return (manufacturer,deviceId,density)
+
+
+    def release_reset(self):
+        """ 
+            On 531 the reset pin is shared with the default flash MOSI pin.
+            The function restore the pin into reset mode
+
+        """
+        self.link.wr_mem(16,self.HWR_CTRL_REG,0x0)
+        self.link.wr_mem(16,self.P00_MODE_REG,self.P00_MODE_REG_RESET)
+
+
     def flash_program_image(self,fileData,address=0x0):
         """ Program image in the flash
 
@@ -353,8 +368,29 @@ class da14531(da1453x_da1458x):
         
 
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
-        self.link.jl.JLINKARM_WriteMem(0x16000000,len(data),c_char_p(data))
+        self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE,len(data),c_char_p(data))
         self.link.jl.JLINKARM_EndDownload()
+
+        self.release_reset()
+
+    def read_flash(self, address, length):
+        read_data = []
+
+        self.flash_init()
+
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.READ_DATA)
+        self.spi_access8(address & 0xFF)
+        self.spi_access8((address >> 8) & 0xFF)
+        self.spi_access8((address >> 16) & 0xFF)
+        while length :
+            read_data.append(self.spi_access8(0xFF))
+            length -= 1
+            
+        self.spi_cs_high()
+        self.release_reset()
+        return(read_data)
+
 
     def flash_erase(self):
         """ execute chip erase
