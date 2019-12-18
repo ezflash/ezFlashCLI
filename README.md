@@ -1,5 +1,7 @@
 # ezFlashCLI
 
+[![Build Status](https://travis-ci.org/ezflash/ezFlashCLI.svg?branch=master)](https://travis-ci.org/ezflash/ezFlashCLI)
+
 Command line tools to flash Dialog Smartbond™ device family. 
 
 The tool relies on Segger J-Link™ library to control the Smartbond SWD interface. The J-Link probe is available on all Smartbond development kits. 
