@@ -7,6 +7,11 @@ Command line tools to flash Dialog Smartbond™ device family.
 
 The tool relies on Segger J-Link™ library to control the Smartbond SWD interface. The J-Link probe is available on all Smartbond development kits. 
 
+## Supported platforms
+
+* macOS
+* windows 10
+
 ## Supported devices
 
 * DA14531
@@ -18,21 +23,24 @@ The tool relies on Segger J-Link™ library to control the Smartbond SWD interfa
 
 ## Installation
 
+```
 > pip install ezFlashCLI
-
-
-
+```
 ## Example
 
 ### erase Flash
+```
 > ezFlashCLI erase_flash
+```
 
 ### Read Flash
+```
 > ezFlashCLI read_flash 0x0 128
-
+```
 ### Program Flash
+```
 > ezFlashCLI write_image \<path to bin file\>
-   
+```   
 The tool will automatically make the bin file bootable if needed
 
 
