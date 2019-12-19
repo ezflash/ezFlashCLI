@@ -1,0 +1,5 @@
+site_name: EzFlashCLI
+
+nav:
+  - 'index.md'
+  - 'about.md'
