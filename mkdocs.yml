@@ -3,6 +3,9 @@ site_name: EzFlashCLI
 theme:
   name: 'readthedocs'
 
+repo_url: https://github.com/ezflash/ezFlashCLI/
+edit_uri: edit/master/docs/
+
 nav:
   - 'index.md'
   - 'about.md'
