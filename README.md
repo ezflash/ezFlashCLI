@@ -41,7 +41,7 @@ For more details, please look at our [Documentation](https://ezflashcli.readthed
 ```
 ### Program Flash
 ```
-> ezFlashCLI write_image \<path to bin file\>
+> ezFlashCLI write_image <path to bin file>
 ```   
 The tool will automatically make the bin file bootable if needed
 
