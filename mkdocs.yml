@@ -1,5 +1,8 @@
 site_name: EzFlashCLI
 
+theme:
+  name: 'readthedocs'
+
 nav:
   - 'index.md'
   - 'about.md'
