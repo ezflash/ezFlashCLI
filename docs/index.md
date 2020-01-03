@@ -39,7 +39,7 @@ The tool relies on Segger J-Link™ library to control the Smartbond SWD interfa
 ```
 ### Program Flash
 ```
-> ezFlashCLI write_image \<path to bin file\>
+> ezFlashCLI image_flash <path to bin file>
 ```   
 The tool will automatically make the bin file bootable if needed
 
