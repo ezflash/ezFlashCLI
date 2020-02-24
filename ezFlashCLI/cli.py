@@ -35,7 +35,8 @@ import argparse
 
 
 class ezFlashCLI():
-
+    
+    flashid = None
 
     def __init__(self):
 
