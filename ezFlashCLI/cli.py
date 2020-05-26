@@ -21,7 +21,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 import logging 
@@ -186,7 +186,7 @@ class ezFlashCLI():
             self.da.connect(self.args.jlink)
             self.da.flash_configure_controller(self.flashid)
             productHeader = self.da.read_product_header()
-            
+
 
 
             if productHeaderCalculated == productHeader:
