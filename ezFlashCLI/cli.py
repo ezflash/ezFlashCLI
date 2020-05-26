@@ -137,12 +137,8 @@ class ezFlashCLI():
 
             self.probeDevice()
             self.probeFlash()
-            da =  eval(self.deviceType)()
-            da.connect(self.args.jlink)
-            da.link.reset()
-            data = da.read_flash(self.args.addr,self.args.length)
-
-
+            self.da.flash_configure_controller(self.flashid)
+            data = self.da.read_flash(self.args.addr,self.args.length)
             current_address = self.args.addr
             line_width = 16
             while len(data):
@@ -192,7 +188,7 @@ class ezFlashCLI():
             productHeader = self.da.read_product_header()
             
 
-            # print(productHeader,productHeaderCalculated)
+
             if productHeaderCalculated == productHeader:
                 logging.info("Product header OK")
             else:
@@ -216,10 +212,8 @@ class ezFlashCLI():
         try:
             self.da =  eval(self.deviceType)()
             self.da.connect(self.args.jlink)
-            self.da.flash_init()
             dev = self.da.flash_probe()
             self.flashid = self.da.get_flash(dev,self.flash_db)
-            self.da.link.close()
             return self.flashid
         except Exception as inst:
             logging.error("No Flash detected {}".format(inst))

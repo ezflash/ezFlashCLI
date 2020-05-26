@@ -427,6 +427,7 @@ class da1468x_da1469x(da14xxx):
     """
         Base class for the 68x,69x family
     """
+    FLASH_ARRAY_BASE    = 0x16000000
 
     QSPIC_CTRLBUS_REG   = 0x00  # Control register 0
     QSPIC_CTRLMODE_REG  = 0x04  # Control register 1
@@ -451,6 +452,8 @@ class da1468x_da1469x(da14xxx):
 
         self.myaddress = 0x0
 
+    def read_flash(self, address, length):
+        return(self.link.rd_mem(8,self.FLASH_ARRAY_BASE + address, length))
 
     def flash_hw_qspi_cs_enable(self):
         """ Enable QSPI CS
