@@ -140,6 +140,17 @@ class da14xxx():
         return None
 
 
+    def flash_configure_controller(self,flashid):
+        """ set the controller in Continuous mode according 
+           flash configuration parmaters
+
+            Notes:
+                Requires the flash device to be successfully probed
+                
+        """
+        pass
+
+
 class da1453x_da1458x(da14xxx):
     pass
 
@@ -707,12 +718,13 @@ class da1468x_da1469x(da14xxx):
 
     def flash_init(self):
         """ Initiallize QSPI controller and make sure the
+            
             Flash device exits low power mode
 
             Args:
                 None
         """
- 
+
         self.flash_set_automode(False)
 
         self.flash_reset()
@@ -752,7 +764,7 @@ class da1468x_da1469x(da14xxx):
         return (manufacturer,deviceId,density)
 
     def flash_configure_controller(self,flashid):
-        """ set the controller in Continious mode according 
+        """ set the controller in Continuous mode according 
            flash configuration parmaters
 
             Notes:
@@ -794,7 +806,6 @@ class da1468x_da1469x(da14xxx):
 
 class da1469x(da1468x_da1469x):
     QPSPIC_BASE         = 0x38000000
-    FLASH_ARRAY_BASE    = 0x16000000
     PRODUCT_HEADER_SIZE = 0x1000
     IMG_IVT_OFFSET      = 0x400
 
@@ -835,10 +846,6 @@ class da1469x(da1468x_da1469x):
         buff += b'\xFF' * (self.PRODUCT_HEADER_SIZE - len(buff))
         return buff
 
-    def read_flash(self, address, length):
-        return(self.link.rd_mem(8,self.FLASH_ARRAY_BASE + address, length))
-
-
     def read_product_header(self):
         dataArray = self.link.rd_mem(8,self.FLASH_ARRAY_BASE,self.PRODUCT_HEADER_SIZE)
 
@@ -873,13 +880,44 @@ class da1469x(da1468x_da1469x):
 
 
 class da1468x(da1468x_da1469x):
-    QPSPIC_BASE = 0x0c000000
+    QPSPIC_BASE         = 0x0c000000
+    FLASH_ARRAY_BASE    = 0x08000000
 
-    def __init__(self):
-        da1468x_da1469x.__init__(self)
+    def __init__(self,device=None):
+        da1468x_da1469x.__init__(self,device)
+
+
+    def flash_program_image(self,fileData,flashid):
+        print(fileData[:2])
+        if fileData[:2] == b"qQ":
+            logging.info("[DA1468x] Program image")   
+            self.flash_program_data(fileData,0x0)
+        else:
+            # ih = self.make_image_header()
+            # ih += b'\xFF'*(_69x_DEFAULT_IMAGE_OFFSET - len(ih))
+            # fileData = ih + fileData
+
+            # logging.info("[DA1469x] Program bin")    
+            # self.flash_program_data(fileData,_69x_DEFAULT_IMAGE_ADDRESS)
+
+            # logging.info("[DA1469x] Program product header")    
+            # ph = self.make_product_header(flashid['flash_burstcmda_reg_value'], \
+            #     flashid['flash_burstcmdb_reg_value'], \
+            #     flashid['flash_write_config_command'],
+            #     active_fw_image_address=_69x_DEFAULT_IMAGE_ADDRESS,
+            #     update_fw_image_address=_69x_DEFAULT_IMAGE_ADDRESS)
+            # self.flash_program_data(ph,0x0)
+            # self.flash_program_data(ph,0x1000)
+            logging.info("[DA1468x] Not supported")        
+        logging.info("[DA1469x] Program success")    
+
+
+
 
 class da14681(da1468x):
-    pass
+    def __init__(self,device=None):
+        da1468x_da1469x.__init__(self, b'DA14681')
 class da14683(da1468x):
-    pass
+    def __init__(self,device=None):
+        da1468x_da1469x.__init__(self, b'DA14683')
        
