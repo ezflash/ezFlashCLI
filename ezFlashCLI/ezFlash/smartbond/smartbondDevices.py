@@ -106,7 +106,7 @@ class da14xxx():
 
         self.link = pyjlink()
         if device:
-            logging.info("Set device to {}".format(device))
+            logging.debug("Set device to {}".format(device))
             self.link.Device = device
         self.link.init()
 

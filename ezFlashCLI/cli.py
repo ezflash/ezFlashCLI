@@ -95,15 +95,16 @@ class ezFlashCLI():
         elif self.args.operation == 'probe':
             self.probeDevice()
 
-            print("Smartbond chip: {}".format(SMARTBOND_PRETTY_IDENTIFIER[self.deviceType]))
+            logging.info("Smartbond chip: {}".format(SMARTBOND_PRETTY_IDENTIFIER[self.deviceType]))
 
 
-            print('Flash information:')
+
             self.probeFlash()
+            logging.info('Flash information:')
             if  not self.flashid is None:
-                print("  - Device Id: {}".format(self.flashid['name']))
+                logging.info("  - Device Id: {}".format(self.flashid['name']))
             else:
-                print("  - Device Id: {}".format("Not Found"))
+                logging.info("  - Device Id: {}".format("Not Found"))
 
             # # check the flash header
             # if self.flashid:
@@ -115,7 +116,7 @@ class ezFlashCLI():
             da =  eval(self.deviceType)()
             da.connect(self.args.jlink)
             if da.flash_erase():
-                print("Flash erase success")
+                logging.info("Flash erase success")
 
             else:
                 logging.error("Flash erase failed")
@@ -232,10 +233,10 @@ class ezFlashCLI():
             self.flashid['flash_write_config_command'] ))
 
     def display_jlink_devices(self):
-        print('JLink devices:')
+        logging.info('JLink devices:')
         for device in self.devicelist:
             if device.SerialNumber != 0:
-                print("  - {}".format(device.SerialNumber))
+                logging.info("  - {}".format(device.SerialNumber))
 
     def argument_parser(self):
         """ Initializes the arguments passed from the command line 

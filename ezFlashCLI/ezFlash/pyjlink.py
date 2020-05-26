@@ -220,7 +220,7 @@ class pyjlink(object):
             try:
                 serialno = int(serialno)
             except:
-                self.logger.debug("Failed to interprete JLink id: {}, will use default interface".format(serialno))
+                self.logger.debug("Failed to interpret JLink id: {}, will use default interface".format(serialno))
                 #return
 
         if serialno:
