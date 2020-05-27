@@ -97,6 +97,7 @@ class da14xxx():
     """ Handler for the Smartbond devices Flash memory
 
     """
+    CLK_AMBA_REG        = 0x50000000
 
     def __init__(self,device=None):
 
@@ -158,7 +159,6 @@ class da14531(da1453x_da1458x):
     
     FLASH_ARRAY_BASE    = 0x16000000
 
-    CLK_AMBA_REG        = 0x50000000
     SET_FREEZE_REG      = 0x50003300
     PAD_LATCH_REG       = 0x5000030C
     SYS_CTRL_REG        = 0x50000012
@@ -883,36 +883,33 @@ class da1468x(da1468x_da1469x):
     QPSPIC_BASE         = 0x0c000000
     FLASH_ARRAY_BASE    = 0x08000000
 
+
     def __init__(self,device=None):
         da1468x_da1469x.__init__(self,device)
 
+    def set_qspi_clk(self):
+        self.link.wr_mem(16,self.CLK_AMBA_REG,0x1000)
 
+
+    def flash_probe(self):
+        """ Probe the flash device
+
+            Args:
+                None
+        """
+        # Set the QSPIC clock on
+        self.set_qspi_clk()
+        return(super().flash_probe())
+ 
     def flash_program_image(self,fileData,flashid):
-        print(fileData[:2])
         if fileData[:2] == b"qQ":
             logging.info("[DA1468x] Program image")   
-            self.flash_program_data(fileData,0x0)
         else:
-            # ih = self.make_image_header()
-            # ih += b'\xFF'*(_69x_DEFAULT_IMAGE_OFFSET - len(ih))
-            # fileData = ih + fileData
+            logging.info("[DA1468x] Program binary")   
+            data = b"qQ\x00\x00\x00\x00\x00\x00" + fileData[:192] + fileData[200:]
 
-            # logging.info("[DA1469x] Program bin")    
-            # self.flash_program_data(fileData,_69x_DEFAULT_IMAGE_ADDRESS)
-
-            # logging.info("[DA1469x] Program product header")    
-            # ph = self.make_product_header(flashid['flash_burstcmda_reg_value'], \
-            #     flashid['flash_burstcmdb_reg_value'], \
-            #     flashid['flash_write_config_command'],
-            #     active_fw_image_address=_69x_DEFAULT_IMAGE_ADDRESS,
-            #     update_fw_image_address=_69x_DEFAULT_IMAGE_ADDRESS)
-            # self.flash_program_data(ph,0x0)
-            # self.flash_program_data(ph,0x1000)
-            logging.info("[DA1468x] Not supported")        
-        logging.info("[DA1469x] Program success")    
-
-
-
+        self.flash_program_data(data,0x0)
+        logging.info("[DA1468x] Program success")
 
 class da14681(da1468x):
     def __init__(self,device=None):

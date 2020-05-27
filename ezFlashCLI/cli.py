@@ -113,9 +113,8 @@ class ezFlashCLI():
 
         elif self.args.operation == 'erase_flash':
             self.probeDevice()
-            da =  eval(self.deviceType)()
-            da.connect(self.args.jlink)
-            if da.flash_erase():
+            self.probeFlash()
+            if self.da.flash_erase():
                 logging.info("Flash erase success")
 
             else:
