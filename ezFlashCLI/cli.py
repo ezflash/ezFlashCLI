@@ -121,17 +121,6 @@ class ezFlashCLI():
             else:
                 logging.error("Flash erase failed")
         
-        elif self.args.operation == 'write_flash':
-
-            with open(self.args.filename,'rb') as fp:
-                fileData = fp.read()
-                logging.info('Program file size {}'.format(len(fileData)))
-                self.probeDevice()
-                da =  eval(self.deviceType)()
-                da.connect(self.args.jlink)
-                da.link.reset()
-                da.flash_program_data(fileData,self.args.addr)
-                fp.close()
 
         elif self.args.operation == 'read_flash':
 
@@ -148,6 +137,18 @@ class ezFlashCLI():
                 current_address += line_width
 
 
+        elif self.args.operation == 'write_flash':
+
+            with open(self.args.filename,'rb') as fp:
+                fileData = fp.read()
+                logging.info('Program file size {}'.format(len(fileData)))
+                fp.close()
+                self.probeDevice()
+                self.probeFlash()
+                self.da =  eval(self.deviceType)()
+                self.da.connect(self.args.jlink)
+                print("0x{:x}".format(self.args.addr, len(fileData)))
+                self.da.flash_program_data(fileData,self.args.addr)
 
         elif self.args.operation ==  'image_flash':
 
