@@ -153,11 +153,7 @@ class da14xxx():
 
 
 class da1453x_da1458x(da14xxx):
-    pass
 
-class da14531(da1453x_da1458x):
-    
-    FLASH_ARRAY_BASE    = 0x16000000
 
     SET_FREEZE_REG      = 0x50003300
     PAD_LATCH_REG       = 0x5000030C
@@ -178,11 +174,6 @@ class da14531(da1453x_da1458x):
     P00_MODE_REG        = 0x50003006
     P00_MODE_REG_RESET  = 0x00000200
     
-    SPI_PORT            = 0
-    SPI_CLK_PIN         = 4
-    SPI_CS_PIN          = 1
-    SPI_DI_PIN          = 3
-    SPI_DO_PIN          = 0
 
     OUTPUT              = 0x300
     INPUT               = 0
@@ -193,33 +184,8 @@ class da14531(da1453x_da1458x):
     # Word Size 32 bits
     SPI_MODE_32BIT      = 2
 
-    def __init__(self):
-        da1453x_da1458x.__init__(self,b"DA14531")
-
-
-    def GPIO_SetPinFunction(self,port,pin,mode,function) :
-        
-        data_reg = self.P0_DATA_REG + (port << 5)
-        mode_reg = data_reg + 0x6 + (pin << 1)
-        self.link.wr_mem(16,mode_reg,mode| function)
-   
-
-    def GPIO_SetActive(self, port, pin):
-        data_reg = self.P0_DATA_REG + (port << 5)
-        set_data_reg = data_reg + 2
-        self.link.wr_mem(16,set_data_reg, 1 << pin)
-    
-    def spi_set_bitmode(self, spi_wsz):
-
-
-        if spi_wsz == self.SPI_MODE_16BIT:
-            self.SetBits16(self.SPI_CONFIG_REG, 0x7c, 15)
-        elif spi_wsz == self.SPI_MODE_32BIT:
-            self.SetBits16(self.SPI_CONFIG_REG, 0x7c, 31)
-        else:
-            self.SetBits16(self.SPI_CONFIG_REG, 0x7c, 7)
-
-    
+    def __init__(self, device=None):
+        da14xxx.__init__(self,device)
 
     def shift16(self,a):
         shift = 0
@@ -237,6 +203,63 @@ class da14531(da1453x_da1458x):
         wr_data = reg  | (data << (self.shift16(bitfield_mask)))
         self.link.wr_mem(16,addr,wr_data)
 
+    def GPIO_SetPinFunction(self,port,pin,mode,function) :
+        
+        data_reg = self.P0_DATA_REG + (port << 5)
+        mode_reg = data_reg + 0x6 + (pin << 1)
+        self.link.wr_mem(16,mode_reg,mode| function)
+   
+    def GPIO_SetActive(self, port, pin):
+        data_reg = self.P0_DATA_REG + (port << 5)
+        set_data_reg = data_reg + 2
+        self.link.wr_mem(16,set_data_reg, 1 << pin)
+    
+
+    def GPIO_SetInactive(self, port, pin):
+        data_reg = self.P0_DATA_REG + (port << 5)
+        set_data_reg = data_reg + 4
+        self.link.wr_mem(16,set_data_reg, 1 << pin)
+
+
+    def flash_probe(self):
+        """ Probe the flash device
+
+            Args:
+                None
+        """
+
+        #reset and halt the cpu
+        self.link.reset()
+
+        #init the flash
+        self.flash_init()
+
+        self.link.rd_mem(16,0x50003000,100)
+        # read JEADEC id
+        self.spi_set_bitmode(self.SPI_MODE_8BIT)
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.READ_JEDEC_ID)
+        manufacturer =  self.spi_access8(0xFF)
+        deviceId = self.spi_access8(0xFF)
+        density = self.spi_access8(0xFF)
+        self.spi_cs_high()
+
+        return (manufacturer,deviceId,density)
+
+class da14531(da1453x_da1458x):
+    
+    FLASH_ARRAY_BASE    = 0x16000000
+
+    SPI_PORT            = 0
+    SPI_CLK_PIN         = 4
+    SPI_CS_PIN          = 1
+    SPI_DI_PIN          = 3
+    SPI_DO_PIN          = 0
+
+
+    def __init__(self):
+        da1453x_da1458x.__init__(self,b"DA14531")
+
 
 
     def spi_cs_low(self):
@@ -247,6 +270,29 @@ class da14531(da1453x_da1458x):
     def spi_cs_high(self):
         self.SetWord16(self.SPI_CS_CONFIG_REG, 0)
         self.SetBits16(self.SPI_CTRL_REG, 0x20, 1)  # reset fifo
+
+    def flash_init(self):
+        """ Initialize flash controller and make sure the
+            Flash device exits low power mode
+
+            Args:
+                None
+        """
+        self.SetWord16(self.CLK_AMBA_REG, 0x00)             # set clocks (hclk and pclk ) 16MHz
+        self.SetWord16(self.SET_FREEZE_REG, 0x8)            # stop watch dog
+        self.SetBits16(self.PAD_LATCH_REG,    0x1, 1)       # open pads
+        self.SetBits16(self.SYS_CTRL_REG, 0x0180, 0x3)      # SWD_DIO = P0_10
+        self.SetWord16(self.HWR_CTRL_REG, 1)                # disable HW reset
+
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CS_PIN, 0x300, 29) # SPI_CS
+        self.GPIO_SetActive(self.SPI_PORT, self.SPI_CS_PIN)
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CLK_PIN, 0x300, 28) # SPI_CLK
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_DO_PIN, 0x300, 27) # SPI_D0
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_DI_PIN, 0, 26) # SPI_DI
+
+        self.SetBits16(self.CLK_PER_REG, 0x400, 1)
+
+        self.spi_set_bitmode(self.SPI_MODE_8BIT)
 
     def spi_access8(self,dataToSend):
    
@@ -277,71 +323,17 @@ class da14531(da1453x_da1458x):
         return dataRead
     
 
-    def flash_init(self):
-        """ Initiallize flash controller and make sure the
-            Flash device exits low power mode
-
-            Args:
-                None
-        """
-        self.SetWord16(self.CLK_AMBA_REG, 0x00)             # set clocks (hclk and pclk ) 16MHz
-        self.SetWord16(self.SET_FREEZE_REG, 0x8)            # stop watch dog
-        self.SetBits16(self.PAD_LATCH_REG,    0x1, 1)       # open pads
-        self.SetBits16(self.SYS_CTRL_REG, 0x0180, 0x3)      # SWD_DIO = P0_10
-        self.SetWord16(self.HWR_CTRL_REG, 1)                # disable HW reset
-
-        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CS_PIN, 0x300, 29) # SPI_CS
-        self.GPIO_SetActive(self.SPI_PORT, self.SPI_CS_PIN)
-        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CLK_PIN, 0x300, 28) # SPI_CLK
-        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_DO_PIN, 0x300, 27) # SPI_D0
-        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_DI_PIN, 0, 26) # SPI_DI
-
-        self.SetBits16(self.CLK_PER_REG, 0x400, 1)
-        # Disable SPI / Reset FIFO in SPI Control Register
-        self.SetWord16(self.SPI_CTRL_REG, 0x0020) # fifo reset
-        # Set SPI Word length
-        self.spi_set_bitmode(self.SPI_MODE_8BIT)
-        # Set SPI Mode (CPOL, CPHA)
-        #spi_set_cp_mode(SPI_CP_MODE_0)
-        self.SetBits16(self.SPI_CONFIG_REG, 0x0003, 0) # mode 0
-        # Set SPI Master/Slave mode
-        self.SetBits16(self.SPI_CONFIG_REG, 0x80, 0) # master mode
-
-        # Set SPI FIFO threshold levels to 0
-        self.SetWord16(self.SPI_FIFO_CONFIG_REG, 0)
-        # Set SPI clock in async mode (mandatory)
-        self.SetBits16(self.SPI_CLOCK_REG, 0x0080, 1)
-
-        # Set SPI master clock speed
-        #spi_set_speed(SPI_SPEED_MODE_2MHz)
-        self.SetBits16(self.SPI_CLOCK_REG, 0x007F, 7)    # 2MHz
-        # Set SPI clock edge capture data
-        self.SetBits16(self.SPI_CTRL_REG, 0x0040, 0)  
+    def spi_set_bitmode(self, spi_wsz):
 
 
-    def flash_probe(self):
-        """ Probe the flash device
+        if spi_wsz == self.SPI_MODE_16BIT:
+            self.SetBits16(self.SPI_CONFIG_REG, 0x7c, 15)
+        elif spi_wsz == self.SPI_MODE_32BIT:
+            self.SetBits16(self.SPI_CONFIG_REG, 0x7c, 31)
+        else:
+            self.SetBits16(self.SPI_CONFIG_REG, 0x7c, 7)
 
-            Args:
-                None
-        """
 
-        #reset and halt the cpu
-        self.link.reset()
-
-        #init the flash
-        self.flash_init()
-
-        # read JEADEC id
-
-        self.spi_set_bitmode(self.SPI_MODE_8BIT)
-        self.spi_cs_low()
-        self.spi_access8(HW_QSPI_COMMON_CMD.READ_JEDEC_ID)
-        manufacturer =  self.spi_access8(0xFF)
-        deviceId = self.spi_access8(0xFF)
-        density = self.spi_access8(0xFF)
-        self.spi_cs_high()
-        return (manufacturer,deviceId,density)
 
 
     def release_reset(self):
@@ -433,6 +425,80 @@ class da14531(da1453x_da1458x):
         self.spi_cs_high()
 
         return 1
+
+
+
+class da14585(da1453x_da1458x):
+
+    SPI_PORT            = 0
+    SPI_CLK_PIN         = 0
+    SPI_CS_PIN          = 3
+    SPI_DI_PIN          = 5
+    SPI_DO_PIN          = 6
+
+    SPI_CTRL_REG1       = 0x50001208
+    SPI_RX_TX_REG0      = 0x50001202
+    SPI_CLEAR_INT       = 0x50001206
+
+
+    def __init__(self,device=None):
+        da1453x_da1458x.__init__(self, b'DA14585')
+
+    def spi_set_bitmode(self, spi_wsz):
+
+        # force to 8 bits whatever the size is 
+        self.SetBits16(self.SPI_CTRL_REG, 0x1, 0)
+        self.SetBits16(self.SPI_CTRL_REG, 0x180, 0)
+        self.SetBits16(self.SPI_CTRL_REG, 0x1, 1)
+
+    def spi_cs_low(self):
+        self.GPIO_SetInactive(self.SPI_PORT,self.SPI_CS_PIN)
+
+
+    def spi_cs_high(self):
+        self.GPIO_SetActive(self.SPI_PORT,self.SPI_CS_PIN)
+
+
+    def spi_access8(self, dataToSend):
+
+        # Set FIFO Bidirectional mode
+        self.SetBits16(self.SPI_CTRL_REG1, 0x3, 2)
+
+        # Write (low part of) dataToSend
+        self.SetWord16(self.SPI_RX_TX_REG0, dataToSend)
+
+        # Polling to wait for spi transmission
+        while ((self.link.rd_mem(16,self.SPI_CTRL_REG,1)[0] & 0x2000) == 0):
+            pass
+
+        # Clear pending flag
+        self.SetWord16(self.SPI_CLEAR_INT, 0x1)
+
+        # Return data read from spi slave
+        return self.link.rd_mem(16,self.SPI_RX_TX_REG0,1)[0]
+
+    def flash_init(self):
+        """ Initialize flash controller and make sure the
+            Flash device exits low power mode
+
+            Args:
+                None
+        """
+        self.SetWord16(self.CLK_AMBA_REG, 0x00)             # set clocks (hclk and pclk ) 16MHz
+        self.SetWord16(self.SET_FREEZE_REG, 0x8)            # stop watch dog
+        self.SetBits16(self.SYS_CTRL_REG, 0x0180, 0x3)      # SWD_DIO = P0_10
+
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CS_PIN, 0x300, 8) # SPI_CS
+        self.GPIO_SetActive(self.SPI_PORT, self.SPI_CS_PIN)
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CLK_PIN, 0x300, 7) # SPI_CLK
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_DO_PIN, 0x300, 6) # SPI_D0
+        self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_DI_PIN, 0, 5) # SPI_DI
+
+        self.SetBits16(self.CLK_PER_REG, 0x800, 1)
+
+        # Set SPI Word length
+        self.spi_set_bitmode(self.SPI_MODE_8BIT)
+
 
 class da1468x_da1469x(da14xxx):
     """
