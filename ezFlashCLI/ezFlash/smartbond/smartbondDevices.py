@@ -154,6 +154,8 @@ class da14xxx():
 
 class da1453x_da1458x(da14xxx):
 
+    FLASH_ARRAY_BASE    = 0x16000000
+
 
     SET_FREEZE_REG      = 0x50003300
     PAD_LATCH_REG       = 0x5000030C
@@ -220,6 +222,23 @@ class da1453x_da1458x(da14xxx):
         set_data_reg = data_reg + 4
         self.link.wr_mem(16,set_data_reg, 1 << pin)
 
+    def read_flash(self, address, length):
+        read_data = []
+
+        self.flash_init()
+
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.READ_DATA)
+        self.spi_access8(address & 0xFF)
+        self.spi_access8((address >> 8) & 0xFF)
+        self.spi_access8((address >> 16) & 0xFF)
+        while length :
+            read_data.append(self.spi_access8(0xFF))
+            length -= 1
+            
+        self.spi_cs_high()
+
+        return(read_data)
 
     def flash_probe(self):
         """ Probe the flash device
@@ -234,7 +253,6 @@ class da1453x_da1458x(da14xxx):
         #init the flash
         self.flash_init()
 
-        self.link.rd_mem(16,0x50003000,100)
         # read JEADEC id
         self.spi_set_bitmode(self.SPI_MODE_8BIT)
         self.spi_cs_low()
@@ -246,10 +264,70 @@ class da1453x_da1458x(da14xxx):
 
         return (manufacturer,deviceId,density)
 
+
+    def flash_erase(self):
+        """ execute chip erase
+
+            Args:
+                None
+        """
+
+        #reset and halt the cpu
+        self.link.reset()
+
+        #init the flash
+        self.flash_init()
+
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.WRITE_ENABLE)
+        self.spi_cs_high()
+
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.CHIP_ERASE)
+        self.spi_cs_high()
+        
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.READ_STATUS_REGISTER)
+
+        while self.spi_access8(HW_QSPI_COMMON_CMD.READ_STATUS_REGISTER) & 0x1:
+            pass
+        self.spi_cs_high()
+
+        return 1
+
+
+
+    def flash_program_image(self,fileData,address=0x0):
+        """ Program image in the flash
+
+            Args:
+                fileData: file data
+                addresss: start address to program
+        """
+        
+        if fileData[0] != b'\x70' or fileData[1] != b'\x50':
+            print("Not a bootable image")
+            if fileData[3] != 0x7 :
+                print("This is not a binary with stack pointer at the beginning",fileData[3] )
+                return
+            else:
+                print("append booting data")
+                header = b'\x70\x50\x00\x00\x00\x00' + struct.pack('>H',len(fileData))
+
+                data = header + fileData
+        else :
+            # bootable image
+            data = fileData
+        
+
+        self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
+        self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE,len(data),c_char_p(data))
+        self.link.jl.JLINKARM_EndDownload()
+
+
+
 class da14531(da1453x_da1458x):
     
-    FLASH_ARRAY_BASE    = 0x16000000
-
     SPI_PORT            = 0
     SPI_CLK_PIN         = 4
     SPI_CS_PIN          = 1
@@ -291,8 +369,26 @@ class da14531(da1453x_da1458x):
         self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_DI_PIN, 0, 26) # SPI_DI
 
         self.SetBits16(self.CLK_PER_REG, 0x400, 1)
-
+        # Disable SPI / Reset FIFO in SPI Control Register
+        self.SetWord16(self.SPI_CTRL_REG, 0x0020) # fifo reset
+        # Set SPI Word length
         self.spi_set_bitmode(self.SPI_MODE_8BIT)
+        # Set SPI Mode (CPOL, CPHA)
+        #spi_set_cp_mode(SPI_CP_MODE_0)
+        self.SetBits16(self.SPI_CONFIG_REG, 0x0003, 0) # mode 0
+        # Set SPI Master/Slave mode
+        self.SetBits16(self.SPI_CONFIG_REG, 0x80, 0) # master mode
+
+        # Set SPI FIFO threshold levels to 0
+        self.SetWord16(self.SPI_FIFO_CONFIG_REG, 0)
+        # Set SPI clock in async mode (mandatory)
+        self.SetBits16(self.SPI_CLOCK_REG, 0x0080, 1)
+
+        # Set SPI master clock speed
+        #spi_set_speed(SPI_SPEED_MODE_2MHz)
+        self.SetBits16(self.SPI_CLOCK_REG, 0x007F, 7)    # 2MHz
+        # Set SPI clock edge capture data
+        self.SetBits16(self.SPI_CTRL_REG, 0x0040, 0)  
 
     def spi_access8(self,dataToSend):
    
@@ -347,84 +443,14 @@ class da14531(da1453x_da1458x):
 
 
     def flash_program_image(self,fileData,address=0x0):
-        """ Program image in the flash
-
-            Args:
-                fileData: file data
-                addresss: start address to program
-        """
-        
-        if fileData[0] != b'\x70' or fileData[1] != b'\x50':
-            print("Not a bootable image")
-            if fileData[3] != 0x7 or fileData[2] != 0xFC:
-                print(type(fileData[3]))
-                print("This is not a binary with stack pointer at the beginning",fileData[3] )
-                return
-            else:
-                print("append booting data")
-                header = b'\x70\x50\x00\x00\x00\x00' + struct.pack('>H',len(fileData))
-
-                data = header + fileData
-        else :
-            # bootable image
-            data = fileData
-        
-
-        self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
-        self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE,len(data),c_char_p(data))
-        self.link.jl.JLINKARM_EndDownload()
+        super().flash_program_image(fileData,address)
 
         self.release_reset()
 
     def read_flash(self, address, length):
-        read_data = []
-
-        self.flash_init()
-
-        self.spi_cs_low()
-        self.spi_access8(HW_QSPI_COMMON_CMD.READ_DATA)
-        self.spi_access8(address & 0xFF)
-        self.spi_access8((address >> 8) & 0xFF)
-        self.spi_access8((address >> 16) & 0xFF)
-        while length :
-            read_data.append(self.spi_access8(0xFF))
-            length -= 1
-            
-        self.spi_cs_high()
+        read_data = super().read_flash(address, length)
         self.release_reset()
         return(read_data)
-
-
-    def flash_erase(self):
-        """ execute chip erase
-
-            Args:
-                None
-        """
-
-        print("531 erase")
-        #reset and halt the cpu
-        self.link.reset()
-
-        #init the flash
-        self.flash_init()
-
-        self.spi_cs_low()
-        self.spi_access8(HW_QSPI_COMMON_CMD.WRITE_ENABLE)
-        self.spi_cs_high()
-
-        self.spi_cs_low()
-        self.spi_access8(HW_QSPI_COMMON_CMD.CHIP_ERASE)
-        self.spi_cs_high()
-        
-        self.spi_cs_low()
-        self.spi_access8(HW_QSPI_COMMON_CMD.READ_STATUS_REGISTER)
-
-        while self.spi_access8(HW_QSPI_COMMON_CMD.READ_STATUS_REGISTER) & 0x1:
-            pass
-        self.spi_cs_high()
-
-        return 1
 
 
 
