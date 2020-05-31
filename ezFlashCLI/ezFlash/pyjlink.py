@@ -136,6 +136,13 @@ class pyjlink(object):
             import platform
             if platform.system() in 'Darwin':
                 dll = 'libjlinkarm.dylib'
+            elif platform.system() in 'Linux':
+                if platform.architecture()[0]=='32bit':
+                    dll = 'JLinkARM.dll'
+                elif platform.architecture()[0]=='64bit':
+                    dll = 'libjlinkarm.so.6.50.2'
+                else:
+                    dll = 'libjlinkarm_x86.so.6.50.2*'
             else:
                 if platform.architecture()[0]=='32bit':
                     dll = 'JLinkARM.dll'
@@ -151,7 +158,7 @@ class pyjlink(object):
         try:
             self.jl = CDLL(self.library)
         except:
-            logging.error('Error loading J-Link DLL')
+            logging.error('Error loading J-Link Library')
             sys.exit(1)
         
         self.logger.debug('J-Link library loaded')
