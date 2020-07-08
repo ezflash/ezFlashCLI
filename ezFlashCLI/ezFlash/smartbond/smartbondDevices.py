@@ -891,7 +891,7 @@ class da1468x_da1469x(da14xxx):
 
     def flash_program_data(self,my_data_array,address= 0x0):
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
-        self.link.jl.JLINKARM_WriteMem(address,len(my_data_array),c_char_p(my_data_array))
+        self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE + address,len(my_data_array),c_char_p(my_data_array))
         self.link.jl.JLINKARM_EndDownload()
 
 
@@ -952,9 +952,11 @@ class da1469x(da1468x_da1469x):
             logging.info("[DA1469x] Program image")   
             self.flash_program_data(fileData,0x0)
         else:
-            ih = self.make_image_header()
-            ih += b'\xFF'*(_69x_DEFAULT_IMAGE_OFFSET - len(ih))
-            fileData = ih + fileData
+            if fileData[:2] != b"Qq":
+                logging.info("[DA1469x] Add image header")
+                ih = self.make_image_header()
+                ih += b'\xFF'*(_69x_DEFAULT_IMAGE_OFFSET - len(ih))
+                fileData = ih + fileData
 
             logging.info("[DA1469x] Program bin")    
             self.flash_program_data(fileData,_69x_DEFAULT_IMAGE_ADDRESS)
