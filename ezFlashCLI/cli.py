@@ -75,7 +75,8 @@ class ezFlashCLI():
 
             if self.rawdevicelist is None:
                 logging.error("No JLink device found")
-                return
+                sys.exit(1)
+
             self.devicelist = []
             for device in self.rawdevicelist:
                 if device.SerialNumber != 0:
@@ -114,12 +115,16 @@ class ezFlashCLI():
         elif self.args.operation == 'erase_flash':
             self.probeDevice()
             self.probeFlash()
+
+            if self.flashid is None:
+                logging.info("Flash chip not found")
+                sys.exit(1)
+
             if self.da.flash_erase():
                 logging.info("Flash erase success")
-
             else:
                 logging.error("Flash erase failed")
-        
+                sys.exit(1)
 
         elif self.args.operation == 'read_flash':
 
@@ -138,33 +143,57 @@ class ezFlashCLI():
 
         elif self.args.operation == 'write_flash':
 
-            with open(self.args.filename,'rb') as fp:
-                fileData = fp.read()
-                logging.info('Program file size {}'.format(len(fileData)))
-                fp.close()
-                self.probeDevice()
-                self.probeFlash()
-                self.da =  eval(self.deviceType)()
-                self.da.connect(self.args.jlink)
-                print("0x{:x}".format(self.args.addr, len(fileData)))
-                self.da.flash_program_data(fileData,self.args.addr)
-
-        elif self.args.operation ==  'image_flash':
-
-            try: 
+            try:
                 fp  = open(self.args.filename,'rb')
             except:
                 logging.error("Failed to open {}".format(self.args.filename))
-                return
+                sys.exit(1)
+
 
             self.probeDevice()
             self.probeFlash()
+            if self.flashid is None:
+                logging.info("Flash chip not found")
+                sys.exit(1)
+
+            self.da =  eval(self.deviceType)()
+            self.da.connect(self.args.jlink)
+            fileData = fp.read()
+            logging.info('Program file size {}'.format(len(fileData)))
+            fp.close()
+
+            print("0x{:x}".format(self.args.addr, len(fileData)))
+            if self.da.flash_program_data(fileData,self.args.addr):
+                logging.info("Flash write success")
+            else:
+                logging.error("Flash write failed")
+                sys.exit(1)
+
+        elif self.args.operation ==  'image_flash':
+
+            try:
+                fp  = open(self.args.filename,'rb')
+            except:
+                logging.error("Failed to open {}".format(self.args.filename))
+                sys.exit(1)
+
+            self.probeDevice()
+            self.probeFlash()
+            if self.flashid is None:
+                logging.info("Flash chip not found")
+                sys.exit(1)
+
             self.da =  eval(self.deviceType)()
             self.da.connect(self.args.jlink)
             fileData = fp.read()
             fp.close()
-            self.da.flash_program_image(fileData,self.flashid)
-                
+
+            if self.da.flash_program_image(fileData,self.flashid):
+                logging.info("Flash image success")
+            else:
+                logging.error("Flash image failed")
+                sys.exit(1)
+
         elif self.args.operation == 'product_header_check':
             ''' Performs sanity check on the product header
                 it will verify the content is consistent with the probed flash

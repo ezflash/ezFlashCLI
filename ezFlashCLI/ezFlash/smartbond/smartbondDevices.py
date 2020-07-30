@@ -304,12 +304,12 @@ class da1453x_da1458x(da14xxx):
                 fileData: file data
                 addresss: start address to program
         """
-        
+
         if fileData[0] != 0x70 or fileData[1] != 0x50:
             print("Not a bootable image")
             if fileData[3] != 0x7 :
                 print("This is not a binary with stack pointer at the beginning",fileData[3] )
-                return
+                return 0
             else:
                 print("append booting data")
                 header = b'\x70\x50\x00\x00\x00\x00' + struct.pack('>H',len(fileData))
@@ -318,15 +318,18 @@ class da1453x_da1458x(da14xxx):
         else :
             # bootable image
             data = fileData
-        
 
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE,len(data),c_char_p(data))
-        self.link.jl.JLINKARM_EndDownload()
+        bytes_flashed = self.link.jl.JLINKARM_EndDownload()
+        if bytes_flashed < 0:
+            print("Download failed with code: {}".format(bytes_flashed))
+            return 0
 
         #reset and halt the cpu
         self.link.reset()
 
+        return 1
 
 class da14531(da1453x_da1458x):
     
@@ -445,9 +448,9 @@ class da14531(da1453x_da1458x):
 
 
     def flash_program_image(self,fileData,address=0x0):
-        super().flash_program_image(fileData,address)
-
+        result = super().flash_program_image(fileData,address)
         self.release_reset()
+        return(result)
 
     def read_flash(self, address, length):
         read_data = super().read_flash(address, length)
@@ -895,8 +898,11 @@ class da1468x_da1469x(da14xxx):
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE + address,len(my_data_array),c_char_p(my_data_array))
         self.link.jl.JLINKARM_EndDownload()
-
-
+        bytes_flashed = self.link.jl.JLINKARM_EndDownload()
+        if bytes_flashed < 0:
+            print("Download failed with code: {}".format(bytes_flashed))
+            return 0
+        return 1
 
 class da1469x(da1468x_da1469x):
     QPSPIC_BASE         = 0x38000000
@@ -972,7 +978,7 @@ class da1469x(da1468x_da1469x):
             self.flash_program_data(ph,0x0)
             self.flash_program_data(ph,0x1000)
         logging.info("[DA1469x] Program success")    
-
+        return 1
 
 
 class da1468x(da1468x_da1469x):
@@ -1006,6 +1012,7 @@ class da1468x(da1468x_da1469x):
 
         self.flash_program_data(data,0x0)
         logging.info("[DA1468x] Program success")
+        return 1
 
 class da14681(da1468x):
     def __init__(self,device=None):
