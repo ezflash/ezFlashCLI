@@ -306,7 +306,7 @@ class da1453x_da1458x(da14xxx):
         """
         
         if fileData[0] != 0x70 or fileData[1] != 0x50:
-            print("Not a bootable image: {}".format(fileData[1]))
+            print("Not a bootable image")
             if fileData[3] != 0x7 :
                 print("This is not a binary with stack pointer at the beginning",fileData[3] )
                 return
