@@ -137,16 +137,15 @@ class pyjlink(object):
             if platform.system() in 'Darwin':
                 dll = 'libjlinkarm.dylib'
             elif platform.system() in 'Linux':
-                if platform.architecture()[0]=='32bit':
-                    dll = 'JLinkARM.dll'
-                elif platform.architecture()[0]=='64bit':
-                    dll = 'libjlinkarm.so.6.50.2'
+                if platform.machine().startswith("arm"):
+                    dll = 'libjlinkarm_arm.so.6.82.2'
                 else:
-                    dll = 'libjlinkarm_x86.so.6.50.2*'
+                    if platform.architecture()[0]=='64bit':
+                        dll = 'libjlinkarm_x64.so.6.50.2'
+                    else:
+                        dll = 'libjlinkarm_x86.so.6.50.2*'
             else:
-                if platform.architecture()[0]=='32bit':
-                    dll = 'JLinkARM.dll'
-                elif platform.architecture()[0]=='64bit':
+                if platform.architecture()[0]=='64bit':
                     dll = 'JLink_x64.dll'
                 else:
                     dll = 'JLinkARM.dll'
