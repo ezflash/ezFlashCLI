@@ -324,6 +324,8 @@ class da1453x_da1458x(da14xxx):
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE,len(data),c_char_p(data))
         self.link.jl.JLINKARM_EndDownload()
 
+        #reset and halt the cpu
+        self.link.reset()
 
 
 class da14531(da1453x_da1458x):
