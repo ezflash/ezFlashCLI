@@ -913,11 +913,17 @@ class da1469x(da1468x_da1469x):
         da1468x_da1469x.__init__(self,b'DA1469x')
 
     
-    def make_image_header(self):
+    def make_image_header(self,image):
         buff = b''
         buff += struct.pack(">2c", b'Q', b'q')
-        for i in range(7):
-            buff += struct.pack("<I", 0x0)
+        buff += struct.pack("<I",len(image))
+        buff += struct.pack("<I",binascii.crc32(image))
+        buff += bytes("ezFlashCLI",'utf-8')
+        # pad the version string
+        for i in range(6):
+            buff += struct.pack("b", 0x0)
+        # add the time stamp
+        buff += struct.pack("<I",int(time.time()))
         buff += struct.pack("<I", self.IMG_IVT_OFFSET)
         buff += struct.pack("<H",0x22AA)
         buff += struct.pack("<H", 0x0)
@@ -962,7 +968,7 @@ class da1469x(da1468x_da1469x):
         else:
             if fileData[:2] != b"Qq":
                 logging.info("[DA1469x] Add image header")
-                ih = self.make_image_header()
+                ih = self.make_image_header(fileData)
                 ih += b'\xFF'*(_69x_DEFAULT_IMAGE_OFFSET - len(ih))
                 fileData = ih + fileData
 
