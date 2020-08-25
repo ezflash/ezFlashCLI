@@ -2,6 +2,16 @@
     "date": "1566474590175",
     "flash_configurations":  [
         {
+            "name": "AT25SL321",
+            "flash_manufacturer": "1F",
+            "flash_device_type": "42",
+            "flash_density": "16",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xa8a000eb",
+            "flash_burstcmdb_reg_value": "0x66",
+            "flash_write_config_command": "0x31 0x02 0x07"
+        },
+        {
             "name": "P25Q80H",
             "flash_manufacturer": "85",
             "flash_device_type": "60",
