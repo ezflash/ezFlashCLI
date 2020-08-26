@@ -897,11 +897,10 @@ class da1468x_da1469x(da14xxx):
     def flash_program_data(self,my_data_array,address= 0x0):
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE + address,len(my_data_array),c_char_p(my_data_array))
-        self.link.jl.JLINKARM_EndDownload()
         bytes_flashed = self.link.jl.JLINKARM_EndDownload()
         if bytes_flashed < 0:
             print("Download failed with code: {}".format(bytes_flashed))
-            return 0
+            sys.exit(bytes_flashed)
         return 1
 
 class da1469x(da1468x_da1469x):
@@ -910,7 +909,7 @@ class da1469x(da1468x_da1469x):
     IMG_IVT_OFFSET      = 0x400
 
     def __init__(self,):
-        da1468x_da1469x.__init__(self,b'DA1469x')
+        da1468x_da1469x.__init__(self,b'DA14695')
 
     
     def make_image_header(self):

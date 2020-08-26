@@ -281,7 +281,13 @@ class pyjlink(object):
             self.logger.debug("Read 58x/68x identifier")
             id = self.rd_mem(8, 0x50003200, 5)
             pass
+        
 
+        c_acIn =  c_char_p(b'DisableInfoWinFlashDL')
+        acOut = b' ' * 80
+        c_acOut = c_char_p(acOut)
+        c_buffersize = c_int(80)
+        self.jl.JLINKARM_ExecCommand(c_acIn,c_acOut,c_buffersize)
 
         return(str(id))
 
