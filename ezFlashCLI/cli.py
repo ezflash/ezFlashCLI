@@ -21,7 +21,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 
 import logging 
@@ -112,6 +112,11 @@ class ezFlashCLI():
             #     print("  - Product header programmed: {}".format(self.flashProductHeaderIsCorrect()))
 
 
+        elif self.args.operation == 'go':
+            self.probeDevice()
+            logging.info("Smartbond chip: {}".format(SMARTBOND_PRETTY_IDENTIFIER[self.deviceType]))
+            self.go()
+            
         elif self.args.operation == 'erase_flash':
             self.probeDevice()
             self.probeFlash()
@@ -227,6 +232,11 @@ class ezFlashCLI():
             self.parser.print_help(sys.stderr)
         sys.exit(0)
 
+    def go(self):
+        self.link.connect(self.args.jlink)
+        self.link.reset()
+        self.link.go()
+
     def probeDevice(self):
         try:
             self.deviceType = SMARTBOND_IDENTIFIER[self.link.connect(self.args.jlink)]
@@ -289,6 +299,7 @@ class ezFlashCLI():
         self.subparsers.add_parser('list',help="list JLink interfaces")
         self.subparsers.add_parser('probe',help='Perform Chip detection and its associated flash')
 
+        self.subparsers.add_parser('go',help='Reset and start the CPU')
         self.subparsers.add_parser('erase_flash',help='Perform Chip Erase on SPI/QSPI flash')
 
         flash_parser = self.subparsers.add_parser('write_flash',help='Write binary file at specified address')
