@@ -21,7 +21,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 
 
 import logging 

@@ -323,7 +323,7 @@ class da1453x_da1458x(da14xxx):
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE,len(data),c_char_p(data))
         bytes_flashed = self.link.jl.JLINKARM_EndDownload()
         if bytes_flashed < 0:
-            print("Download failed with code: {}".format(bytes_flashed))
+            logging.error("Download failed with code: @address {}, {}".format(address,bytes_flashed))
             return 0
 
         #reset and halt the cpu
@@ -535,7 +535,8 @@ class da1468x_da1469x(da14xxx):
     """
         Base class for the 68x,69x family
     """
-    FLASH_ARRAY_BASE    = 0x16000000
+    FLASH_READ_ARRAY_BASE    = 0x16000000
+    FLASH_ARRAY_BASE         = 0x16000000
 
     QSPIC_CTRLBUS_REG   = 0x00  # Control register 0
     QSPIC_CTRLMODE_REG  = 0x04  # Control register 1
@@ -561,7 +562,7 @@ class da1468x_da1469x(da14xxx):
         self.myaddress = 0x0
 
     def read_flash(self, address, length):
-        return(self.link.rd_mem(8,self.FLASH_ARRAY_BASE + address, length))
+        return(self.link.rd_mem(8,self.FLASH_READ_ARRAY_BASE + address, length))
 
     def flash_hw_qspi_cs_enable(self):
         """ Enable QSPI CS
@@ -894,12 +895,12 @@ class da1468x_da1469x(da14xxx):
         self.flash_set_busmode(HW_QSPI_BUS_MODE.QUAD)
         self.flash_set_automode(True)
 
-    def flash_program_data(self,my_data_array,address= 0x0):
+    def flash_program_data(self,my_data_array,address= 0x80000000):
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE + address,len(my_data_array),c_char_p(my_data_array))
         bytes_flashed = self.link.jl.JLINKARM_EndDownload()
         if bytes_flashed < 0:
-            print("Download failed with code: {}".format(bytes_flashed))
+            logging.error("Download failed with code: @{:x} {}".format(self.FLASH_ARRAY_BASE,bytes_flashed))
             sys.exit(bytes_flashed)
         return 1
 
@@ -946,7 +947,7 @@ class da1469x(da1468x_da1469x):
         return buff
 
     def read_product_header(self):
-        dataArray = self.link.rd_mem(8,self.FLASH_ARRAY_BASE,self.PRODUCT_HEADER_SIZE)
+        dataArray = self.link.rd_mem(8,self.FLASH_READ_ARRAY_BASE,self.PRODUCT_HEADER_SIZE)
 
         product_header = b''
         for data in dataArray:
@@ -981,8 +982,9 @@ class da1469x(da1468x_da1469x):
 
 
 class da1468x(da1468x_da1469x):
-    QPSPIC_BASE         = 0x0c000000
-    FLASH_ARRAY_BASE    = 0x08000000
+    QPSPIC_BASE              = 0x0c000000
+    FLASH_READ_ARRAY_BASE    = 0x08000000
+    FLASH_ARRAY_BASE         = 0x00000000
 
 
     def __init__(self,device=None):
