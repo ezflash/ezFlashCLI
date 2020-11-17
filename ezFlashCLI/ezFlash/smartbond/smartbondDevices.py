@@ -535,8 +535,8 @@ class da1468x_da1469x(da14xxx):
     """
         Base class for the 68x,69x family
     """
-    FLASH_READ_ARRAY_BASE    = 0x16000000
-    FLASH_ARRAY_BASE         = 0x16000000
+    FLASH_READ_ARRAY_BASE    = 0x36000000
+    FLASH_ARRAY_BASE         = 0x36000000
 
     QSPIC_CTRLBUS_REG   = 0x00  # Control register 0
     QSPIC_CTRLMODE_REG  = 0x04  # Control register 1
@@ -910,7 +910,7 @@ class da1469x(da1468x_da1469x):
     IMG_IVT_OFFSET      = 0x400
 
     def __init__(self,):
-        da1468x_da1469x.__init__(self,b'DA14695')
+        da1468x_da1469x.__init__(self,b'DA1469x')
 
     
     def make_image_header(self):
