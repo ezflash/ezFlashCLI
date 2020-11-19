@@ -984,7 +984,7 @@ class da1469x(da1468x_da1469x):
 class da1468x(da1468x_da1469x):
     QPSPIC_BASE              = 0x0c000000
     FLASH_READ_ARRAY_BASE    = 0x08000000
-    FLASH_ARRAY_BASE         = 0x00000000
+    FLASH_ARRAY_BASE         = 0x08000000
 
 
     def __init__(self,device=None):

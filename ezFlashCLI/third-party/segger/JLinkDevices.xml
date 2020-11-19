@@ -8,12 +8,12 @@
     <FlashBankInfo Name="macr. Flash" BaseAddr="0x16000000" MaxSize="0x40000" Loader="segger_flash_loader_585.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14681" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x10000" Core="JLINK_CORE_CORTEX_M0" />
-    <FlashBankInfo Name="win. Flash" BaseAddr="0x0000000" MaxSize="0x100000" Loader="segger_flash_loader_68x.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
+    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14681" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
+    <FlashBankInfo Name="win. Flash" BaseAddr="0x08000000" MaxSize="0x100000" Loader="segger_flash_loader_68x.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14683" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x10000" Core="JLINK_CORE_CORTEX_M0" />
-    <FlashBankInfo Name="win. Flash" BaseAddr="0x0000000" MaxSize="0x100000" Loader="segger_flash_loader_68x.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
+    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14683" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
+    <FlashBankInfo Name="win. Flash" BaseAddr="0x08000000" MaxSize="0x100000" Loader="segger_flash_loader_68x.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
     <ChipInfo Vendor="Dialog Semiconductor"   Name="DA1469x" WorkRAMAddr="0x810000" WorkRAMSize="0x10000" Core="JLINK_CORE_CORTEX_M33" />
