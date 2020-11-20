@@ -69,7 +69,7 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     test_suite='tests',
-    scripts=['Scripts/ezFlashCLI'],
+    scripts=['Scripts/ezFlashCLI','Scripts/ezSerialCLI'],
 
     tests_require=test_requirements
 )
