@@ -141,9 +141,9 @@ class pyjlink(object):
                     dll = 'libjlinkarm_arm.so.6.82.2'
                 else:
                     if platform.architecture()[0]=='64bit':
-                        dll = 'libjlinkarm_x64.so.6.50.2'
+                        dll = 'libjlinkarm.so.6.82.2'
                     else:
-                        dll = 'libjlinkarm_x86.so.6.50.2*'
+                        dll = 'libjlinkarm_x86.so.6.82.2'
             else:
                 if platform.architecture()[0]=='64bit':
                     dll = 'JLink_x64.dll'
@@ -293,7 +293,7 @@ class pyjlink(object):
 
     def close(self):
         """Closes the connection to the target system"""
-        self.jl.JLINKARM_Close()
+        #self.jl.JLINKARM_Close()
 
     def rd_mem(self, widthBits, addr, numItems):
         """Reads from target memory in units of widthBits-bits
