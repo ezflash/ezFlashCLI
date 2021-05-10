@@ -293,7 +293,7 @@ class pyjlink(object):
 
     def close(self):
         """Closes the connection to the target system"""
-        #self.jl.JLINKARM_Close()
+        self.jl.JLINKARM_Close()
 
     def rd_mem(self, widthBits, addr, numItems):
         """Reads from target memory in units of widthBits-bits
