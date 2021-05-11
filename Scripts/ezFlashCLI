@@ -2,9 +2,6 @@
 
 import ezFlashCLI.cli
 
-
-
-
 if __name__ == "__main__":
     
     ezFlashCLI.cli.ezFlashCLI()

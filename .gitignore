@@ -4,3 +4,4 @@ dist
 docs/_build
 ezFlashCLI.egg-info
 .venv
+**/.DS_Store
