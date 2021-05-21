@@ -973,6 +973,126 @@ class da1469x(da1468x_da1469x):
 
         return buff
 
+    def scatterfile_product_header(
+        self,
+        flash_burstcmda_reg_value,
+        flash_burstcmdb_reg_value,
+        flash_write_config_command,
+        active_fw_image_address=0x2000,
+        update_fw_image_address=0x2000,
+    ):
+        """Calculate product header based on inputs.
+
+        Args:
+            flash_burstcmda_reg_value: 32 bits burst command
+            flash_burstcmdb_reg_value: 32 bits burst command
+            flash_write_config_command: flash configuration command
+            active_fw_image_address: Active image address
+            update_fw_image_address: Update image address
+
+        Returns a text array that can be pasted in the linker script
+
+        """
+        cmd_len = len(flash_write_config_command.split(" "))
+
+        headerarray = self.make_product_header(
+            flash_burstcmda_reg_value,
+            flash_burstcmdb_reg_value,
+            flash_write_config_command,
+            active_fw_image_address,
+            update_fw_image_address,
+        )
+
+        crc = struct.unpack("H", headerarray[(22 + cmd_len) : (24 + cmd_len)])[0]
+
+        outputArray = """
+#if ( dg_configUSE_SEGGER_FLASH_LOADER == 1 )
+        .prod_head :
+        AT ( QSPI_FLASH_ADDRESS)
+        {{
+                __prod_head_start = .;
+                SHORT(0x7050)                   // 'Pp' flag
+                LONG(QSPI_FW_BASE_OFFSET)       // active image pointer
+                LONG(QSPI_FW_BASE_OFFSET)       // update image pointer
+                LONG({})                // busrtcmdA
+                LONG({})                // busrtcmdB
+                SHORT(0x11AA)                   // Flash config section
+                SHORT(0x{:04x})                   // Flash config length
+{}
+                SHORT(0x{:04x})                   // CRC
+
+                . =  __prod_head_start + 0x1000;
+        }} > ROM = 0xFF
+
+        .prod_head_backup :
+        AT ( QSPI_FLASH_ADDRESS + 0x1000)
+        {{
+                __prod_head_backup_start = .;
+                SHORT(0x7050)                   // 'Pp' flag
+                LONG(QSPI_FW_BASE_OFFSET)       // active image pointer
+                LONG(QSPI_FW_BASE_OFFSET)       // update image pointer
+                LONG({})                // busrtcmdA
+                LONG({})                // busrtcmdB
+                SHORT(0x11AA)                   // Flash config section
+                SHORT(0x{:04x})                     // Flash config length
+{}
+                SHORT(0x{:04x})                   // CRC
+
+
+                . =  __prod_head_backup_start + 0x1000;
+
+        }} > ROM = 0xFF
+
+        .img_head :
+        AT (QSPI_FW_BASE_ADDRESS)
+        {{
+                _img_head_start = .;
+                SHORT(0x7151)                   // 'Pp' flag
+                LONG(SIZEOF(.text))
+                LONG(0x0)                       // crc, doesn't matter
+                LONG(0x0)                       // version, doesn't matter
+                LONG(0x0)                       // version, doesn't matter
+                LONG(0x0)                       // version, doesn't matter
+                LONG(0x0)                       // version, doesn't matter
+                LONG(0x0)                       // timestamp, doesn't matter
+                LONG(QSPI_FW_IVT_OFFSET)        // IVT pointer
+                SHORT(0x22AA)                   // Security section type
+                SHORT(0x0)                      //Security section length
+                SHORT(0x44AA)                   // Device admin type
+                SHORT(0x0)                      // Device admin length
+
+
+                . = _img_head_start + 0x400;
+
+        }} > ROM = 0xFF
+
+#endif /* dg_configUSE_SEGGER_FLASH_LOADER */
+        """
+        outputArray = outputArray.format(
+            flash_burstcmda_reg_value,
+            flash_burstcmdb_reg_value,
+            len(flash_write_config_command.split(" ")),
+            self.add_flash_sequence(flash_write_config_command),
+            crc,
+            flash_burstcmda_reg_value,
+            flash_burstcmdb_reg_value,
+            len(flash_write_config_command.split(" ")),
+            self.add_flash_sequence(flash_write_config_command),
+            crc,
+        )
+        print(outputArray)
+        return outputArray
+
+    def add_flash_sequence(self, conf_seq):
+        """Add flash sequence depending on the conf."""
+        data = ""
+        for databyte in conf_seq.split(" "):
+            data += "                BYTE({})                      // Flash config sequence\n".format(
+                databyte
+            )
+
+        return data
+
     def make_product_header(
         self,
         flash_burstcmda_reg_value,
