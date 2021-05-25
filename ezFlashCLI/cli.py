@@ -22,7 +22,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.20"
+__version__ = "0.0.21"
 
 
 import argparse
@@ -209,6 +209,24 @@ class ezFlashCLI:
                 logging.error("Flash image failed")
                 sys.exit(1)
 
+        elif self.args.operation == "linker_header":
+            """Generate the product header based on the probed flash
+
+            This can be pasted in your linker script to adapt custom flash
+
+            """
+            self.probeDevice()
+            self.probeFlash()
+            self.importAndAssignDevice(self.deviceType)
+
+            logging.info(
+                self.da.scatterfile_product_header(
+                    self.flashid["flash_burstcmda_reg_value"],
+                    self.flashid["flash_burstcmdb_reg_value"],
+                    self.flashid["flash_write_config_command"],
+                )
+            )
+
         elif self.args.operation == "product_header_check":
             """Performs sanity check on the product header
             it will verify the content is consistent with the probed flash
@@ -382,6 +400,10 @@ class ezFlashCLI:
 
         flash_parser = self.subparsers.add_parser(
             "product_header_check", help="Read the product header and check"
+        )
+        flash_parser = self.subparsers.add_parser(
+            "linker_header",
+            help="Generate product header which can be copied in the linker script",
         )
 
         self.args = self.parser.parse_args()

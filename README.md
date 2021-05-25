@@ -50,6 +50,9 @@ Know flash devices:
 * IS25WP032
 * GD25LE32
 * GD25LE16
+* AT25FF081A
+* AT25SL321
+
 
 
 
