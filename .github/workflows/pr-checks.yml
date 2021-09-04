@@ -47,7 +47,7 @@ jobs:
           python -m venv venv
           . venv/bin/activate
           pip install -U pip setuptools pre-commit
-          pip install -r requirements_test_all.txt
+          pip install -r requirements.txt
           pip install -e .
   pre-commit:
     name: Prepare pre-commit environment
@@ -70,7 +70,7 @@ jobs:
             ${{ env.CACHE_VERSION}}-${{ runner.os }}-base-venv-${{
             steps.python.outputs.python-version }}-${{
             hashFiles('setup.py') }}-${{
-            hashFiles('requirements_test_all.txt') }}
+            hashFiles('requirements.txt') }}
       - name: Fail job if Python cache restore failed
         if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
@@ -111,7 +111,7 @@ jobs:
             ${{ env.CACHE_VERSION}}-${{ runner.os }}-base-venv-${{
             steps.python.outputs.python-version }}-${{
             hashFiles('setup.py') }}-${{
-            hashFiles('requirements_test_all.txt') }}
+            hashFiles('requirements.txt') }}
       - name: Fail job if Python cache restore failed
         if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
@@ -154,7 +154,7 @@ jobs:
             ${{ env.CACHE_VERSION}}-${{ runner.os }}-base-venv-${{
             steps.python.outputs.python-version }}-${{
             hashFiles('setup.py') }}-${{
-            hashFiles('requirements_test_all.txt') }}
+            hashFiles('requirements.txt') }}
       - name: Fail job if Python cache restore failed
         if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
@@ -200,7 +200,7 @@ jobs:
             ${{ env.CACHE_VERSION}}-${{ runner.os }}-base-venv-${{
             steps.python.outputs.python-version }}-${{
             hashFiles('setup.py') }}-${{
-            hashFiles('requirements_test_all.txt') }}
+            hashFiles('requirements.txt') }}
       - name: Fail job if Python cache restore failed
         if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
@@ -243,7 +243,7 @@ jobs:
             ${{ env.CACHE_VERSION}}-${{ runner.os }}-base-venv-${{
             steps.python.outputs.python-version }}-${{
             hashFiles('setup.py') }}-${{
-            hashFiles('requirements_test_all.txt') }}
+            hashFiles('requirements.txt') }}
       - name: Fail job if Python cache restore failed
         if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
@@ -293,7 +293,7 @@ jobs:
             ${{ env.CACHE_VERSION}}-${{ runner.os }}-base-venv-${{
             steps.python.outputs.python-version }}-${{
             hashFiles('setup.py') }}-${{
-            hashFiles('requirements_test_all.txt') }}
+            hashFiles('requirements.txt') }}
       - name: Fail job if Python cache restore failed
         if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
@@ -354,7 +354,7 @@ jobs:
             ${{ env.CACHE_VERSION}}-${{ runner.os }}-base-venv-${{
             steps.python.outputs.python-version }}-${{
             hashFiles('setup.py') }}-${{
-            hashFiles('requirements_test_all.txt') }}
+            hashFiles('requirements.txt') }}
       - name: Fail job if Python cache restore failed
         if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
