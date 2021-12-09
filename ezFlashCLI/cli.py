@@ -22,7 +22,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.22"
+__version__ = "0.0.23"
 
 
 import argparse
@@ -30,7 +30,6 @@ import json
 import logging
 import os
 import sys
-import struct
 
 import ezFlashCLI.ezFlash.smartbond.smartbondDevices as sbdev
 from ezFlashCLI.ezFlash.pyjlink import pyjlink
@@ -158,20 +157,20 @@ class ezFlashCLI:
         elif self.args.operation == "write_flash_bytes":
             # decode the command
             logging.info(
-                "Writting at 0x{:08x}. Data: {}".format(self.args.addr, self.args.data)
+                "Writing at 0x{:08x}. Data: {}".format(self.args.addr, self.args.data)
             )
-            #decode the data
-            data = b''
+            # decode the data
+            data = b""
 
             for d in self.args.data:
-                if '0x' in d:
-                    try :
+                if "0x" in d:
+                    try:
                         data += bytes().fromhex(d[2:])
                     except Exception as ex:
-                        logging.error("Failed to decode byte: {}: {}".format(d,ex))
+                        logging.error("Failed to decode byte: {}: {}".format(d, ex))
                         sys.exit(0)
                 else:
-                    data += int(d).to_bytes(1,'little')
+                    data += int(d).to_bytes(1, "little")
 
             self.probeDevice()
             self.probeFlash()
@@ -185,7 +184,7 @@ class ezFlashCLI:
                 logging.info("Flash write success")
             else:
                 logging.error("Flash write failed")
-            
+
             sys.exit(1)
 
         elif self.args.operation == "write_flash":
@@ -425,7 +424,10 @@ class ezFlashCLI:
         )
 
         flash_write_bytes_parser.add_argument(
-            "data", nargs="+", default=[], help="data bytes list as decimal (0-255) or hexadecimal (0x00-0xFF)"
+            "data",
+            nargs="+",
+            default=[],
+            help="data bytes list as decimal (0-255) or hexadecimal (0x00-0xFF)",
         )
 
         flash_parser = self.subparsers.add_parser(
