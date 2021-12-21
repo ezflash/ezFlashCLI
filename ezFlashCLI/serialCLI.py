@@ -133,6 +133,11 @@ class da1469xSerialLoader(object):
         self.args = self.parser.parse_args()
 
 
+def main():
+    """Create da1469xSerialLoader instance."""
+    da1469xSerialLoader()
+
+
 if __name__ == "__main__":
 
-    da1469xSerialLoader()
+    main()

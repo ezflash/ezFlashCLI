@@ -67,6 +67,11 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     test_suite="tests",
-    scripts=["Scripts/ezFlashCLI", "Scripts/ezSerialCLI"],
+    entry_points={
+        "console_scripts": [
+            "ezFlashCLI=ezFlashCLI.cli:main",
+            "ezSerialCLI=ezFlashCLI.serialCLI:main",
+        ],
+    },
     tests_require=test_requirements,
 )
