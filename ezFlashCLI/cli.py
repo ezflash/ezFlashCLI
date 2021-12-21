@@ -22,7 +22,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.23"
+__version__ = "0.0.24"
 
 
 import argparse
@@ -457,8 +457,10 @@ class ezFlashCLI:
         self.args = self.parser.parse_args()
 
 
-if __name__ == "__main__":
-
+def main():
+    """Create da1469xSerialLoader instance."""
     ezFlashCLI()
 
-    pass
+
+if __name__ == "__main__":
+    main()
