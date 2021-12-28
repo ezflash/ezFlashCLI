@@ -82,17 +82,23 @@ class da1469xSerialLoader(object):
             if not self.get_stx():
                 self.logger.info("Failed to detect Smartbond device")
                 return
-
+        self.logger.info("Reset detected")
         # self.sp.write(b'\x01') # send SOH
         if size < 2 ** 16:
             self.sp.write(b"\x01" + size.to_bytes(2, byteorder="little"))
         else:
             self.sp.write(b"\x01\x00\x00" + size.to_bytes(3, byteorder="little"))
 
+        if self.args.one:
+            self.sp.read(3)
+
         if self.sp.read(1) != b"\x06":
             self.logger.error("Failed to get length ACK")
             return
         self.sp.write(data)
+
+        if self.args.one:
+            self.sp.read(len(data))
 
         read_crc = int.from_bytes(self.sp.read(1), byteorder="little")
         if read_crc != crc:
@@ -128,6 +134,10 @@ class da1469xSerialLoader(object):
 
         self.parser.add_argument(
             "--version", help="return version number", action="store_true"
+        )
+
+        self.parser.add_argument(
+            "-o", "--one", help="setup 1-wire mode", action="store_true"
         )
 
         self.args = self.parser.parse_args()
