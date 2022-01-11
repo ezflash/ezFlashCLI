@@ -141,6 +141,13 @@
             "flash_size": "0x40000"
         },
         {
+            "name": "P25Q11U",
+            "flash_manufacturer": "85",
+            "flash_device_type": "40",
+            "flash_density": "11",
+            "flash_size": "0x20000"
+        },
+        {
             "name": "W25X20CL",
             "flash_manufacturer": "EF",
             "flash_device_type": "30",
