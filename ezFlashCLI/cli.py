@@ -145,13 +145,6 @@ class ezFlashCLI:
             self.probeDevice()
             self.probeFlash()
             self.da.flash_configure_controller(self.flashid)
-            if self.flashid is None:
-                logging.info("Flash chip not found")
-                sys.exit(1)
-
-            self.importAndAssignDevice(self.deviceType)
-            self.da.connect(self.args.jlink)
-            print(self.flashid)
             data = self.da.read_flash(self.args.addr, self.args.length)
             current_address = self.args.addr
             line_width = 16
