@@ -177,7 +177,7 @@ class pyjlink(object):
         self.serialno = None
         self.iphost = None
         # Speed of JTAG connection in kHz.
-        self.speed = 4000
+        self.speed = 2000
         self.Device = b"Cortex-M33"  # select M33 by default to issue exit dormant state
         self.jl = None
         self.logger = logging.getLogger(self.__class__.__name__)
