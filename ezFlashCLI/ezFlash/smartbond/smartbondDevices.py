@@ -315,7 +315,7 @@ class da1453x_da1458x(da14xxx):
             address: start address to program
         """
         if fileData[0] != 0x70 or fileData[1] != 0x50:
-            print("Not a bootable image")
+            logging.info("Not a bootable image")
             if fileData[3] != 0x7:
                 print(
                     "This is not a binary with stack pointer at the beginning",
@@ -323,7 +323,7 @@ class da1453x_da1458x(da14xxx):
                 )
                 return 0
             else:
-                print("append booting data")
+                logging.info("append booting data")
                 header = b"\x70\x50\x00\x00\x00\x00" + struct.pack(">H", len(fileData))
 
                 data = header + fileData
