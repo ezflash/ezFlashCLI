@@ -315,7 +315,7 @@ class da1453x_da1458x(da14xxx):
             address: start address to program
         """
         if fileData[0] != 0x70 or fileData[1] != 0x50:
-            print("Not a bootable image")
+            logging.info("Not a bootable image")
             if fileData[3] != 0x7:
                 print(
                     "This is not a binary with stack pointer at the beginning",
@@ -323,7 +323,7 @@ class da1453x_da1458x(da14xxx):
                 )
                 return 0
             else:
-                print("append booting data")
+                logging.info("append booting data")
                 header = b"\x70\x50\x00\x00\x00\x00" + struct.pack(">H", len(fileData))
 
                 data = header + fileData
@@ -333,6 +333,31 @@ class da1453x_da1458x(da14xxx):
 
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE, len(data), c_char_p(data))
+        bytes_flashed = self.link.jl.JLINKARM_EndDownload()
+        if bytes_flashed < 0:
+            logging.error(
+                "Download failed with code: @address {}, {}".format(
+                    address, bytes_flashed
+                )
+            )
+            return 0
+
+        # reset and halt the cpu
+        self.link.reset()
+
+        return 1
+
+    def flash_program_data(self, fileData, address=0x0):
+        """Program raw data in the flash.
+
+        Args:
+            my_data_array: bytes array
+            address: destination address
+        """
+        self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
+        self.link.jl.JLINKARM_WriteMem(
+            self.FLASH_ARRAY_BASE + address, len(fileData), c_char_p(fileData)
+        )
         bytes_flashed = self.link.jl.JLINKARM_EndDownload()
         if bytes_flashed < 0:
             logging.error(
@@ -396,7 +421,7 @@ class da14531(da1453x_da1458x):
         self.spi_set_bitmode(self.SPI_MODE_8BIT)
         # Set SPI Mode (CPOL, CPHA)
         # spi_set_cp_mode(SPI_CP_MODE_0)
-        self.SetBits16(self.SPI_CONFIG_REG, 0x0003, 0)  # mode 0
+        self.SetBits16(self.SPI_CONFIG_REG, 0x0003, 3)  # mode 0
         # Set SPI Master/Slave mode
         self.SetBits16(self.SPI_CONFIG_REG, 0x80, 0)  # master mode
 

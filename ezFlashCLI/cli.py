@@ -22,7 +22,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.25"
+__version__ = "0.0.26alpha1"
 
 
 import argparse
@@ -153,6 +153,16 @@ class ezFlashCLI:
                 logging.info("{:08X}: {}".format(current_address, dataByes))
                 data = data[line_width:]
                 current_address += line_width
+        elif self.args.operation == "read_flash_bin":
+
+            with open(self.args.file, "wb") as fp:
+                self.probeDevice()
+                self.probeFlash()
+                self.da.flash_configure_controller(self.flashid)
+                data = self.da.read_flash(self.args.addr, self.args.length)
+                for datum in data:
+                    fp.write(datum.to_bytes(1, "little"))
+                fp.close()
 
         elif self.args.operation == "write_flash_bytes":
             # decode the command
@@ -453,6 +463,19 @@ class ezFlashCLI:
             "linker_header",
             help="Generate product header which can be copied in the linker script",
         )
+
+        binary_parser = self.subparsers.add_parser(
+            "read_flash_bin",
+            help="Read flash and output to file",
+        )
+        binary_parser.add_argument(
+            "addr", type=lambda x: int(x, 0), help="Address in the flash area"
+        )
+        binary_parser.add_argument(
+            "length", type=lambda x: int(x, 0), help="number of bytes to read"
+        )
+
+        binary_parser.add_argument("file", type=str, help="output file")
 
         self.args = self.parser.parse_args()
 

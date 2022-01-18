@@ -177,7 +177,7 @@ class pyjlink(object):
         self.serialno = None
         self.iphost = None
         # Speed of JTAG connection in kHz.
-        self.speed = 4000
+        self.speed = 2000
         self.Device = b"Cortex-M33"  # select M33 by default to issue exit dormant state
         self.jl = None
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -285,8 +285,8 @@ class pyjlink(object):
         self.jl.JLINKARM_TIF_Select(ctypes.c_interface)
 
         self.logger.debug("Set the speed for J-Link communication with the core")
-        c_speed = ctypes.c_uint32(self.speed)
-        self.jl.JLINKARM_SetSpeed(c_speed)
+        # c_speed = ctypes.c_uint32(self.speed)
+        # self.jl.JLINKARM_SetSpeed(c_speed)
 
         self.logger.debug("Establish a connection to the target system")
         if self.jl.JLINKARM_IsConnected():
