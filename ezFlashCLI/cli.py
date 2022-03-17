@@ -22,7 +22,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "0.0.28beta2"
+__version__ = "0.0.28"
 
 
 import argparse
