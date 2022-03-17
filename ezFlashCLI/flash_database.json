@@ -13,6 +13,17 @@
 
         },
         {
+            "name": "AT25FF161A",
+            "flash_manufacturer": "1F",
+            "flash_device_type": "46",
+            "flash_density": "08",
+            "flash_size": "0x100000",
+            "flash_burstcmda_reg_value": "0xa80000eb",
+            "flash_burstcmdb_reg_value": "0x00000016",
+            "flash_write_config_command": "0x31 0x02 0x07"
+
+        },
+        {
             "name": "AT25SL321",
             "flash_manufacturer": "1F",
             "flash_device_type": "42",
