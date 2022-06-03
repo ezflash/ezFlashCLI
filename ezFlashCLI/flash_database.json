@@ -159,10 +159,31 @@
             "flash_size": "0x20000"
         },
         {
+            "name": "W25X40CL",
+            "flash_manufacturer": "EF",
+            "flash_device_type": "30",
+            "flash_density": "13",
+            "flash_size": "0x80000"
+        },
+        {
             "name": "W25X20CL",
             "flash_manufacturer": "EF",
             "flash_device_type": "30",
             "flash_density": "12",
+            "flash_size": "0x40000"
+        },
+        {
+            "name": "W25X10CL",
+            "flash_manufacturer": "EF",
+            "flash_device_type": "30",
+            "flash_density": "11",
+            "flash_size": "0x20000"
+        },
+        {
+            "name": "AT25XE021A",
+            "flash_manufacturer": "1F",
+            "flash_device_type": "43",
+            "flash_density": "01",
             "flash_size": "0x40000"
         }
 
