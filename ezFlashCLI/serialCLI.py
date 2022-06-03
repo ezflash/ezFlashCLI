@@ -84,7 +84,7 @@ class da1469xSerialLoader(object):
                 return
         self.logger.info("Reset detected")
         # self.sp.write(b'\x01') # send SOH
-        if size < 2 ** 16:
+        if size < 2**16:
             self.sp.write(b"\x01" + size.to_bytes(2, byteorder="little"))
         else:
             self.sp.write(b"\x01\x00\x00" + size.to_bytes(3, byteorder="little"))
