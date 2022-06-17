@@ -20,8 +20,7 @@
     <FlashBankInfo Name="win. Flash" BaseAddr="0x36000000" MaxSize="0x2000000" Loader="segger_flash_loader_69x.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <!-- WorkRAM as declared in sections.ld -->
     <ChipInfo Vendor="Dialog Semiconductor"   Name="DA1470x" WorkRAMAddr="0x10010000" WorkRAMSize="0x00040000" Core="JLINK_CORE_CORTEX_M33" />
-    <FlashBankInfo Name="OQSPIC Flash" BaseAddr="0x38000000" MaxSize="0x8000000" Loader="segger_flash_loader_70x_oflash.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
-  </Device>  
+    <FlashBankInfo Name="OQSPIC Flash" BaseAddr="0x38000000" MaxSize="0x200000" Loader="segger_flash_loader_70x_oflash.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
+  </Device>
 </DataBase>

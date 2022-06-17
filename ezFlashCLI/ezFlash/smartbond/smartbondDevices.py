@@ -589,7 +589,7 @@ class da14585(da1453x_da1458x):
         self.spi_set_bitmode(self.SPI_MODE_8BIT)
 
 
-class da1468x_da1469x(da14xxx):
+class da1468x_da1469x_da1470x(da14xxx):
     """Base class for the 68x,69x family."""
 
     FLASH_READ_ARRAY_BASE = 0x36000000
@@ -972,7 +972,7 @@ class da1468x_da1469x(da14xxx):
         return 1
 
 
-class da1469x(da1468x_da1469x):
+class da1469x(da1468x_da1469x_da1470x):
     """Derived class for the da1469x devices."""
 
     QPSPIC_BASE = 0x38000000
@@ -981,7 +981,7 @@ class da1469x(da1468x_da1469x):
 
     def __init__(self, name=b"DA1469x"):
         """Initalizate the da14xxxx parent devices class."""
-        da1468x_da1469x.__init__(self, name)
+        da1468x_da1469x_da1470x.__init__(self, name)
 
     def make_image_header(self, image):
         """Image header generation.
@@ -1259,7 +1259,7 @@ class da1470x(da1469x):
         return True
 
 
-class da1468x(da1468x_da1469x):
+class da1468x(da1468x_da1469x_da1470x):
     """Derived class for the DA1468x devices."""
 
     QPSPIC_BASE = 0x0C000000
@@ -1268,7 +1268,7 @@ class da1468x(da1468x_da1469x):
 
     def __init__(self, device=None):
         """Initalizate the da14xxxx parent devices class."""
-        da1468x_da1469x.__init__(self, device)
+        da1468x_da1469x_da1470x.__init__(self, device)
 
     def set_qspi_clk(self):
         """Set the QSPI clock.
@@ -1316,7 +1316,7 @@ class da14681(da1468x):
 
     def __init__(self, device=None):
         """Initalizate the da14xxxx parent devices class."""
-        da1468x_da1469x.__init__(self, b"DA14681")
+        da1468x_da1469x_da1470x.__init__(self, b"DA14681")
 
 
 class da14683(da1468x):
@@ -1324,4 +1324,4 @@ class da14683(da1468x):
 
     def __init__(self, device=None):
         """Initalizate the da14xxxx parent devices class."""
-        da1468x_da1469x.__init__(self, b"DA14683")
+        da1468x_da1469x_da1470x.__init__(self, b"DA14683")
