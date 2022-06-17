@@ -21,6 +21,7 @@ The tool relies on Segger J-Link™ library to control the Smartbond SWD interfa
 * DA14585
 
 Know flash devices:
+
 * MX25R2035F
 
 ### DA1468X and DA1469X
@@ -37,6 +38,12 @@ Know flash devices:
   * DA14697
   * DA14699
 
+* DA1470x:
+  * DA14701
+  * DA14705
+  * DA14706
+  * DA14708
+
 Know flash devices:
 
 * P25Q80H
@@ -52,10 +59,6 @@ Know flash devices:
 * GD25LE16
 * AT25FF081A
 * AT25SL321
-
-
-
-
 
 ## Installation
 
@@ -118,8 +121,6 @@ INFO:root:Smartbond chip: DA14682/DA14683
 INFO:root:Flash information:
 INFO:root:  - Device Id: W25Q80EW
 ```
-
-
 
 ### erase Flash
 

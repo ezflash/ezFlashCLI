@@ -83,15 +83,19 @@ SMARTBOND_IDENTIFIER = {
     "[50, 53, 50, 50]": "da1469x",
     "[50, 55, 54, 51]": "da1469x",
     "[51, 48, 56, 48]": "da1469x",
+    "[50, 55, 57, 56]": "da1470x",
+    "[51, 49, 48, 55]": "da1470x",
     "[54, 56, 48, 0, 65]": "da14681",
     "[54, 56, 48, 0, 66]": "da14683",
     "[53, 56, 53, 1, 65]": "da14585",
+    "[53, 56, 53, 0, 65]": "da14585",
     "[53, 56, 48, 1, 65]": "da14580",
     "[50, 0, 50, 0, 54]": "da14531",
 }
 
 
 SMARTBOND_PRETTY_IDENTIFIER = {
+    "da1470x": "DA1470x",
     "da1469x": "DA1469x",
     "da14681": "DA14680/DA14681",
     "da14683": "DA14682/DA14683",
@@ -933,8 +937,16 @@ class da1468x_da1469x(da14xxx):
             int(flashid["flash_burstcmdb_reg_value"][2:], 16),
         )
 
+        if "flash_ctrlmode_reg_value" in flashid:
+            self.link.wr_mem(
+                32,
+                self.QSPIC_CTRLMODE_REG,
+                int(flashid["flash_ctrlmode_reg_value"][2:], 16),
+            )
+
         self.link.rd_mem(32, self.QSPIC_BURSTCMDA_REG, 1)
         self.link.rd_mem(32, self.QSPIC_BURSTCMDB_REG, 1)
+        self.link.rd_mem(32, self.QSPIC_CTRLMODE_REG, 1)
         self.flash_set_busmode(HW_QSPI_BUS_MODE.QUAD)
         self.flash_set_automode(True)
 
@@ -967,9 +979,9 @@ class da1469x(da1468x_da1469x):
     PRODUCT_HEADER_SIZE = 0x1000
     IMG_IVT_OFFSET = 0x400
 
-    def __init__(self):
+    def __init__(self, name=b"DA1469x"):
         """Initalizate the da14xxxx parent devices class."""
-        da1468x_da1469x.__init__(self, b"DA1469x")
+        da1468x_da1469x.__init__(self, name)
 
     def make_image_header(self, image):
         """Image header generation.
@@ -1204,6 +1216,47 @@ class da1469x(da1468x_da1469x):
             self.flash_program_data(ph, 0x1000)
         logging.info("[DA1469x] Program success")
         return 1
+
+
+class da1470x(da1469x):
+    """Derived class for the da1470x devices."""
+
+    QPSPIC_BASE = 0x36000000
+    FLASH_READ_ARRAY_BASE = 0x38000000
+    FLASH_ARRAY_BASE = 0x38000000
+
+    def __init__(self):
+        """Initalizate the da14xxxx parent devices class."""
+        da1469x.__init__(self, b"DA1470x")
+
+    def flash_hw_qspi_cs_enable(self):
+        """Enable QSPI CS.
+
+        Args:
+            None
+        """
+        self.link.wr_mem(32, self.QSPIC_CTRLBUS_REG, 0x10)
+
+    def flash_hw_qspi_cs_disable(self):
+        """Disable QSPI CS.
+
+        Args:
+            None
+        """
+        self.link.wr_mem(32, self.QSPIC_CTRLBUS_REG, 0x20)
+
+    def flash_set_automode(self, mode):
+        """Set the device in automode.
+
+        Args:
+            mode: boolean
+        """
+        # ctrlmode = self.link.rd_mem(32, self.QSPIC_CTRLMODE_REG, 1)[0]
+        if mode:
+            self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BF)
+        else:
+            self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BE)
+        return True
 
 
 class da1468x(da1468x_da1469x):
