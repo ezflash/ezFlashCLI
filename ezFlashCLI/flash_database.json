@@ -1,7 +1,6 @@
 {
     "date": "1566474590175",
-    "flash_configurations":  [
-        {
+    "flash_configurations": [{
             "name": "AT25FF081A",
             "flash_manufacturer": "1F",
             "flash_device_type": "45",
@@ -11,6 +10,16 @@
             "flash_burstcmdb_reg_value": "0x00000016",
             "flash_write_config_command": "0x31 0x02 0x07"
 
+        },
+        {
+            "name": "AT25FF321A",
+            "flash_manufacturer": "1F",
+            "flash_device_type": "47",
+            "flash_density": "08",
+            "flash_size": "0x400000",
+            "flash_burstcmda_reg_value": "0xa8A500eb",
+            "flash_burstcmdb_reg_value": "0x00000056",
+            "flash_write_config_command": "0x31 0x02 0x07"
         },
         {
             "name": "AT25FF161A",
@@ -75,6 +84,17 @@
             "flash_write_config_command": "0x01 0x00 0x07"
         },
         {
+            "name": "W25Q64JWIM",
+            "flash_manufacturer": "EF",
+            "flash_device_type": "80",
+            "flash_density": "17",
+            "flash_size": "0x100000",
+            "flash_burstcmda_reg_value": "0xA8A000EB",
+            "flash_burstcmdb_reg_value": "0x00000616",
+            "flash_ctrlmode_reg_value": "0xF8018F83",
+            "flash_write_config_command": "0x02 0x31 0x02"
+        },
+        {
             "name": "W25Q128JW",
             "flash_manufacturer": "EF",
             "flash_device_type": "60",
@@ -95,6 +115,17 @@
             "flash_write_config_command": "0x01 0x40 0x07"
         },
         {
+            "name": "MX25U6432",
+            "flash_manufacturer": "C2",
+            "flash_device_type": "25",
+            "flash_density": "37",
+            "flash_size": "0x800000",
+            "flash_burstcmda_reg_value": "0xA8A500EB",
+            "flash_burstcmdb_reg_value": "0x00000616",
+            "flash_ctrlmode_reg_value": "0xF8018F83",
+            "flash_write_config_command": "0x03 0x01 0x40 0x07"
+        },
+        {
             "name": "W25Q80EW",
             "flash_manufacturer": "EF",
             "flash_device_type": "60",
@@ -111,6 +142,16 @@
             "flash_density": "16",
             "flash_size": "0x400000",
             "flash_burstcmda_reg_value": "0xa82000eb",
+            "flash_burstcmdb_reg_value": "0x00000066",
+            "flash_write_config_command": "0x31 0x02 0x07"
+        },
+        {
+            "name": "W25Q256JW",
+            "flash_manufacturer": "EF",
+            "flash_device_type": "80",
+            "flash_density": "19",
+            "flash_size": "0x2000000",
+            "flash_burstcmda_reg_value": "0xa8a500eb",
             "flash_burstcmdb_reg_value": "0x00000066",
             "flash_write_config_command": "0x31 0x02 0x07"
         },
@@ -143,6 +184,18 @@
             "flash_burstcmda_reg_value": "0xa82000eb",
             "flash_burstcmdb_reg_value": "0x00000066",
             "flash_write_config_command": "0x01 0x00 0x02 0x07"
+        },
+        {
+            "name": "MX66LM1G45G",
+            "flash_manufacturer": "C2",
+            "flash_device_type": "80",
+            "flash_density": "3B",
+            "flash_size": "0x40000000",
+            "flash_burstcmda_reg_value": "0xFFFF00EC",
+            "flash_burstcmdb_reg_value": "0x00010253",
+            "flash_ctrlmode_reg_value": "0xF001E101",
+            "flash_write_config_command": "0x06 0x72 0x00 0x00 0x00 0x00 0x01"
+
         },
         {
             "name": "MX25R2035F",

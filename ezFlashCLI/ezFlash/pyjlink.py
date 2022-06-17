@@ -177,7 +177,7 @@ class pyjlink(object):
         self.serialno = None
         self.iphost = None
         # Speed of JTAG connection in kHz.
-        self.speed = 2000
+        self.speed = 4000
         self.Device = b"Cortex-M33"  # select M33 by default to issue exit dormant state
         self.jl = None
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -294,15 +294,17 @@ class pyjlink(object):
             self.close()
 
         r = self.jl.JLINKARM_Connect()
-        # self.wr_mem(32, 0x50040300, 0x8)
         if r == -1:
             raise pyJLinkException("Unspecified error")
         elif r < 0:
             raise pyJLinkException(JLINKARM_ERROR_CODES(r).name)
 
         try:
-            self.logger.debug("Read 69x identifier")
-            id = self.rd_mem(32, 0x50040200, 4)
+            self.logger.debug("Read 70x identifier")
+            id = self.rd_mem(32, 0x50040000, 4)
+            if id == [0, 65535, 65535, 0]:
+                self.logger.debug("Read 69x identifier")
+                id = self.rd_mem(32, 0x50040200, 4)
         except Exception:
             self.logger.debug("Failed to read 69x identifier")
             self.logger.debug("Read 58x/68x identifier")
