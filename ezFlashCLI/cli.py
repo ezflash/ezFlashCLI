@@ -303,9 +303,18 @@ class ezFlashCLI:
             self.probeFlash()
             self.importAndAssignDevice(self.deviceType)
             self.da.connect(self.args.jlink)
-            self.da.flash_configure_controller(self.flashid)
-            offset = self.da.otp_read(self.args.key)
+            count, offset = self.da.otp_read(self.args.key)
             if (offset < 0):
+                sys.exit(1)
+
+        elif self.args.operation == "write_otp":
+
+            self.probeDevice()
+            self.probeFlash()
+            self.importAndAssignDevice(self.deviceType)
+            self.da.connect(self.args.jlink)
+            result = self.da.otp_write(self.args.key, self.args.values, self.args.force)
+            if (result < 0):
                 sys.exit(1)
 
         else:
@@ -427,11 +436,25 @@ class ezFlashCLI:
             "erase_flash", help="Perform Chip Erase on SPI/QSPI flash"
         )
 
-        otp_parser = self.subparsers.add_parser(
-            "read_otp", help="Read specified OTP value"
+        otp_read_parser = self.subparsers.add_parser(
+            "read_otp", help="Read specified OTP config script value"
         )
-        otp_parser.add_argument(
-            "key", nargs="?", type=lambda x: int(x, 0), default=0xffffffff, help="Key to read"
+        otp_read_parser.add_argument(
+            "key", nargs="?", type=lambda x: int(x, 0), default=0xffffffff, help="Key to read (example: 0x100c0040)"
+        )
+
+        otp_write_parser = self.subparsers.add_parser(
+            "write_otp", help="Write specified OTP config script value"
+        )
+        otp_write_parser.add_argument(
+            "key", type=lambda x: int(x, 0), help="Key to write (example: 0x50020A18)"
+        )
+        otp_write_parser.add_argument(
+            "values", nargs="+", type=lambda x: int(x, 0), help="Value(s) to write (example: 0x200)"
+        )
+
+        otp_write_parser.add_argument(
+            "--force", help="Force adding key even if it already exists", action="store_true"
         )
 
         flash_parser = self.subparsers.add_parser(
