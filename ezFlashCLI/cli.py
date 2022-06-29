@@ -297,6 +297,17 @@ class ezFlashCLI:
             else:
                 logging.error("Product header mismatch")
 
+        elif self.args.operation == "read_otp":
+
+            self.probeDevice()
+            self.probeFlash()
+            self.importAndAssignDevice(self.deviceType)
+            self.da.connect(self.args.jlink)
+            self.da.flash_configure_controller(self.flashid)
+            offset = self.da.otp_read(self.args.key)
+            if (offset < 0):
+                sys.exit(1)
+
         else:
             self.parser.print_help(sys.stderr)
         sys.exit(0)
@@ -414,6 +425,13 @@ class ezFlashCLI:
         self.subparsers.add_parser("go", help="Reset and start the CPU")
         self.subparsers.add_parser(
             "erase_flash", help="Perform Chip Erase on SPI/QSPI flash"
+        )
+
+        otp_parser = self.subparsers.add_parser(
+            "read_otp", help="Read specified OTP value"
+        )
+        otp_parser.add_argument(
+            "key", nargs="?", type=lambda x: int(x, 0), default=0xffffffff, help="Key to read"
         )
 
         flash_parser = self.subparsers.add_parser(

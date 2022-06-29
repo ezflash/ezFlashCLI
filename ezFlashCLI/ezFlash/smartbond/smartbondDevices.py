@@ -36,6 +36,8 @@ SPI_FLASH_PAGE_SIZE = 256
 SPI_FLASH_SECTOR_SIZE = 4096
 _69x_DEFAULT_IMAGE_ADDRESS = 0x2000
 _69x_DEFAULT_IMAGE_OFFSET = 0x400
+_69X_OTP_BASE_ADDR = 0x10080000
+_69X_OTP_CFG_SCRIPT_ADDR = _69X_OTP_BASE_ADDR + 0x0C00
 
 
 class HW_QSPI_BREAK_SEQ_SIZE(IntEnum):
@@ -603,6 +605,28 @@ class da1468x_da1469x_da1470x(da14xxx):
     QSPIC_WRITEDATA_REG = 0x18  # write data registers in manual mode
     QSPIC_READDATA_REG = 0x1C  # read data registers in manual mode
 
+    OTPC_MODE_REG = 0x00  # Mode register
+    OTPC_STAT_REG = 0x04  # Status register 
+    OTPC_PADDR_REG = 0x08  # The address of the word that will be programmed
+    OTPC_PWORD_REG = 0x0C  # The 32-bit word that will be programmed
+    OTPC_TIM1_REG = 0x10  # Various timing parameters of the OTP cell
+    OTPC_TIM2_REG = 0x14  # Various timing parameters of the OTP cell
+
+    OTPC_MODE_PDOWN = 0 # OTP cell and LDO are inactive
+    OTPC_MODE_DSTBY = 1 # OTP cell is powered on LDO is inactive
+    OTPC_MODE_STBY = 2 # OTP cell and LDO are powered on, chip select is deactivated
+    OTPC_MODE_READ = 3 # OTP cell can be read
+    OTPC_MODE_PROG = 4 # OTP cell can be programmed
+    OTPC_MODE_PVFY = 5 # OTP cell can be read in PVFY margin read mode
+    OTPC_MODE_RINI = 6 # OTP cell can be read in RINI margin read mode
+    OTPC_TIM1_REG_RESET = 0x0999101f
+    OTPC_TIM2_REG_RESET = 0xa4040409
+
+    OTP_BASE = 0x10080000
+    OTP_CFG_SCRIPT_ADDR = OTP_BASE + 0x0C00
+    OTP_CFG_SCRIPT_ENTRY_SIZE = 4
+    OTP_CFG_SCRIPT_ENTRY_CNT_MAX = 256
+
     def __init__(self, device=None):
         """Initialize the QSPI controller and parent class."""
         da14xxx.__init__(self, device)
@@ -615,7 +639,95 @@ class da1468x_da1469x_da1470x(da14xxx):
         self.QSPIC_WRITEDATA_REG += self.QPSPIC_BASE
         self.QSPIC_READDATA_REG += self.QPSPIC_BASE
 
+        self.OTPC_MODE_REG += self.OTPC_BASE
+        self.OTPC_STAT_REG += self.OTPC_BASE
+        self.OTPC_PADDR_REG += self.OTPC_BASE
+        self.OTPC_PWORD_REG += self.OTPC_BASE
+        self.OTPC_TIM1_REG += self.OTPC_BASE
+        self.OTPC_TIM2_REG += self.OTPC_BASE
+
         self.myaddress = 0x0
+
+    def otp_init(self):
+        """Init the OTP controller.
+
+        Args:
+            None
+        """
+
+        # Enable OTPC clock
+        clkreg = self.link.rd_mem(16, self.CLK_AMBA_REG, 1)[0]
+        self.link.wr_mem(16, self.CLK_AMBA_REG, clkreg | 0x200)
+
+        # Mode to standby
+        self.otp_set_mode(self.OTPC_MODE_DSTBY)
+
+        # Default timings
+        self.link.wr_mem(32, self.OTPC_TIM1_REG, self.OTPC_TIM1_REG_RESET)
+        self.link.wr_mem(32, self.OTPC_TIM2_REG, self.OTPC_TIM2_REG_RESET)
+
+    def otp_set_mode(self, mode):
+        """Moves the OTPC in new mode
+
+        Args:
+            mode: the new mode
+        """
+        # Change mode only if new mode is different than the old one
+        otpmode = self.link.rd_mem(32, self.OTPC_MODE_REG, 1)[0]
+        if otpmode != mode:
+            self.link.wr_mem(32, self.OTPC_MODE_REG, mode)
+
+        # Wait for mode change
+        while (self.link.rd_mem(32, self.OTPC_STAT_REG, 1)[0] & 0x4) == 0:
+            pass
+
+    def otp_read(self, key=0xffffffff):
+
+        # Init OTP
+        self.otp_init()
+        self.otp_set_mode(self.OTPC_MODE_READ)
+
+        # Read whole config script
+        entries = self.link.rd_mem(self.OTP_CFG_SCRIPT_ENTRY_SIZE * 8, self.OTP_CFG_SCRIPT_ADDR, self.OTP_CFG_SCRIPT_ENTRY_CNT_MAX)
+
+        # Parse entries skipping start entry
+        offset = 1
+        while offset < self.OTP_CFG_SCRIPT_ENTRY_CNT_MAX:
+            entry = entries[offset]
+
+            # Check for key (or end if not specified)
+            if (entry == key):
+                offset = offset
+                if (key != 0xffffffff):
+                    logging.info("OTP key found at offset 0x{:x} with value 0x{:x}".format(offset * self.OTP_CFG_SCRIPT_ENTRY_SIZE, entries[offset + 1]))
+                return offset * self.OTP_CFG_SCRIPT_ENTRY_SIZE
+
+            # Check for stop command
+            if (entry == 0x00000000):
+                logging.info("OTP is locked")
+                return -2
+
+            logging.debug("OTP {}: {:x}".format(offset, entry))
+
+            # Decode entry and skip data values
+            msb = (entry & 0xf0000000) >> 24
+            if (msb == 0x60): # BOOTER
+                offset += 1
+            elif (msb == 0x70): # SWD MODE
+                offset += 1
+            elif (msb == 0x80): # UART STX
+                offset += 1
+            elif (msb == 0x90): # SDK ENTRIES
+                offset += 1
+                offset += (entry & 0x0000ff00) >> 8
+            else: # REG ENTRIES OR XTAL TRIM
+                offset += 2
+
+        if (key == 0xffffffff):
+            logging.info("OTP is full")
+        else:
+            logging.info("OTP key not found")
+        return -1
 
     def read_flash(self, address, length):
         """Read flash.
@@ -975,6 +1087,7 @@ class da1468x_da1469x_da1470x(da14xxx):
 class da1469x(da1468x_da1469x_da1470x):
     """Derived class for the da1469x devices."""
 
+    OTPC_BASE = 0x30070000
     QPSPIC_BASE = 0x38000000
     PRODUCT_HEADER_SIZE = 0x1000
     IMG_IVT_OFFSET = 0x400
