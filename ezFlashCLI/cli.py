@@ -304,7 +304,7 @@ class ezFlashCLI:
             self.importAndAssignDevice(self.deviceType)
             self.da.connect(self.args.jlink)
             count, offset = self.da.otp_read(self.args.key)
-            if (offset < 0):
+            if offset < 0:
                 sys.exit(1)
 
         elif self.args.operation == "write_otp":
@@ -314,7 +314,7 @@ class ezFlashCLI:
             self.importAndAssignDevice(self.deviceType)
             self.da.connect(self.args.jlink)
             result = self.da.otp_write(self.args.key, self.args.values, self.args.force)
-            if (result < 0):
+            if result < 0:
                 sys.exit(1)
 
         else:
@@ -440,7 +440,11 @@ class ezFlashCLI:
             "read_otp", help="Read specified OTP config script value"
         )
         otp_read_parser.add_argument(
-            "key", nargs="?", type=lambda x: int(x, 0), default=0xffffffff, help="Key to read (example: 0x100c0040)"
+            "key",
+            nargs="?",
+            type=lambda x: int(x, 0),
+            default=0xFFFFFFFF,
+            help="Key to read (example: 0x100c0040)",
         )
 
         otp_write_parser = self.subparsers.add_parser(
@@ -450,11 +454,16 @@ class ezFlashCLI:
             "key", type=lambda x: int(x, 0), help="Key to write (example: 0x50020A18)"
         )
         otp_write_parser.add_argument(
-            "values", nargs="+", type=lambda x: int(x, 0), help="Value(s) to write (example: 0x200)"
+            "values",
+            nargs="+",
+            type=lambda x: int(x, 0),
+            help="Value(s) to write (example: 0x200)",
         )
 
         otp_write_parser.add_argument(
-            "--force", help="Force adding key even if it already exists", action="store_true"
+            "--force",
+            help="Force adding key even if it already exists",
+            action="store_true",
         )
 
         flash_parser = self.subparsers.add_parser(

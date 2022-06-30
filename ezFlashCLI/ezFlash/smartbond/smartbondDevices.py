@@ -164,11 +164,15 @@ class da14xxx:
         pass
 
     def otp_read(self, key):
+        """Fallback function for OTP read."""
         logging.error("OTP not implemented for this device")
         return 0, -9
+
     def otp_write(self, key, values, force):
+        """Fallback function for OTP write."""
         logging.error("OTP not implemented for this device")
         return -9
+
 
 class da1453x_da1458x(da14xxx):
     """Derived class for the DA145xx and DA1458xx devices."""
@@ -995,15 +999,15 @@ class da1469x(da1468x_da1469x_da1470x):
     OTPC_TIM1_REG = 0x10  # Various timing parameters of the OTP cell
     OTPC_TIM2_REG = 0x14  # Various timing parameters of the OTP cell
 
-    OTPC_MODE_PDOWN = 0 # OTP cell and LDO are inactive
-    OTPC_MODE_DSTBY = 1 # OTP cell is powered on LDO is inactive
-    OTPC_MODE_STBY = 2 # OTP cell and LDO are powered on, chip select is deactivated
-    OTPC_MODE_READ = 3 # OTP cell can be read
-    OTPC_MODE_PROG = 4 # OTP cell can be programmed
-    OTPC_MODE_PVFY = 5 # OTP cell can be read in PVFY margin read mode
-    OTPC_MODE_RINI = 6 # OTP cell can be read in RINI margin read mode
-    OTPC_TIM1_REG_RESET = 0x0999101f
-    OTPC_TIM2_REG_RESET = 0xa4040409
+    OTPC_MODE_PDOWN = 0  # OTP cell and LDO are inactive
+    OTPC_MODE_DSTBY = 1  # OTP cell is powered on LDO is inactive
+    OTPC_MODE_STBY = 2  # OTP cell and LDO are powered on, chip select is deactivated
+    OTPC_MODE_READ = 3  # OTP cell can be read
+    OTPC_MODE_PROG = 4  # OTP cell can be programmed
+    OTPC_MODE_PVFY = 5  # OTP cell can be read in PVFY margin read mode
+    OTPC_MODE_RINI = 6  # OTP cell can be read in RINI margin read mode
+    OTPC_TIM1_REG_RESET = 0x0999101F
+    OTPC_TIM2_REG_RESET = 0xA4040409
 
     OTP_BASE = 0x10080000
     OTP_CFG_SCRIPT_OFFSET = 0x0C00
@@ -1258,7 +1262,6 @@ class da1469x(da1468x_da1469x_da1470x):
 
     def otp_init(self):
         """Init the OTP controller."""
-
         # Enable OTPC clock
         clkreg = self.link.rd_mem(16, self.CLK_AMBA_REG, 1)[0]
         self.link.wr_mem(16, self.CLK_AMBA_REG, clkreg | 0x200)
@@ -1271,8 +1274,7 @@ class da1469x(da1468x_da1469x_da1470x):
         self.link.wr_mem(32, self.OTPC_TIM2_REG, self.OTPC_TIM2_REG_RESET)
 
     def otp_set_mode(self, mode):
-        """Moves the OTPC in new mode."""
-
+        """Move the OTPC in new mode."""
         # Change mode only if new mode is different than the old one
         otpmode = self.link.rd_mem(32, self.OTPC_MODE_REG, 1)[0]
         if otpmode != mode:
@@ -1283,23 +1285,29 @@ class da1469x(da1468x_da1469x_da1470x):
             pass
 
     def otp_verify_words(self, words, offset, mode):
-        """Verifies OTP words."""
-
+        """Verify OTP words."""
         # Verify words
         self.otp_set_mode(mode)
         for word in words:
-            read = self.link.rd_mem(self.OTP_CFG_SCRIPT_ENTRY_SIZE * 8, self.OTP_CFG_SCRIPT_ADDR + offset, 1)[0]
-            if (read != word):
-                logging.error("OTP verify fail: mode {}, offset 0x{:x}, read 0x{:x}, written 0x{:x}".format(mode, offset, read, word))
+            read = self.link.rd_mem(
+                self.OTP_CFG_SCRIPT_ENTRY_SIZE * 8, self.OTP_CFG_SCRIPT_ADDR + offset, 1
+            )[0]
+            if read != word:
+                logging.error(
+                    "OTP verify fail: mode {}, offset 0x{:x}, read 0x{:x}, written 0x{:x}".format(
+                        mode, offset, read, word
+                    )
+                )
                 return False
             offset += self.OTP_CFG_SCRIPT_ENTRY_SIZE
         return True
 
     def otp_write_words(self, words, offset):
-        """Writes OTP words."""
-
+        """Write OTP words."""
         # Convert offset in config script (in bytes) to offset in cells from start of OTP
-        cell_offset = int((self.OTP_CFG_SCRIPT_OFFSET + offset) / self.OTP_CFG_SCRIPT_ENTRY_SIZE)
+        cell_offset = int(
+            (self.OTP_CFG_SCRIPT_OFFSET + offset) / self.OTP_CFG_SCRIPT_ENTRY_SIZE
+        )
 
         # Write words
         self.otp_set_mode(self.OTPC_MODE_PROG)
@@ -1323,7 +1331,7 @@ class da1469x(da1468x_da1469x_da1470x):
         return True
 
     def otp_read(self, key):
-        """Read the OTP and search for a key
+        """Read the OTP and search for a key.
 
         Args:
             key: OTP entry to look for, value will be printed
@@ -1332,13 +1340,16 @@ class da1469x(da1468x_da1469x_da1470x):
             count: number of times key was found
             offset: OTP offset of first free entry, or negative for error
         """
-
         # Init OTP
         self.otp_init()
         self.otp_set_mode(self.OTPC_MODE_READ)
 
         # Read whole config script
-        entries = self.link.rd_mem(self.OTP_CFG_SCRIPT_ENTRY_SIZE * 8, self.OTP_CFG_SCRIPT_ADDR, self.OTP_CFG_SCRIPT_ENTRY_CNT_MAX)
+        entries = self.link.rd_mem(
+            self.OTP_CFG_SCRIPT_ENTRY_SIZE * 8,
+            self.OTP_CFG_SCRIPT_ADDR,
+            self.OTP_CFG_SCRIPT_ENTRY_CNT_MAX,
+        )
 
         # Parse entries skipping start entry
         count = 0
@@ -1347,44 +1358,52 @@ class da1469x(da1468x_da1469x_da1470x):
             entry = entries[index]
 
             # Check for key
-            if (entry == key):
-                if (key != 0xffffffff):
-                    logging.info("OTP key found at offset 0x{:x} with value 0x{:x}".format(index * self.OTP_CFG_SCRIPT_ENTRY_SIZE, entries[index + 1]))
+            if entry == key:
+                if key != 0xFFFFFFFF:
+                    logging.info(
+                        "OTP key found at offset 0x{:x} with value 0x{:x}".format(
+                            index * self.OTP_CFG_SCRIPT_ENTRY_SIZE, entries[index + 1]
+                        )
+                    )
                 count += 1
 
             # Check for end of script
-            if (entry == 0xffffffff):
-                if (count == 0):
+            if entry == 0xFFFFFFFF:
+                if count == 0:
                     logging.info("OTP key not yet in script")
-                logging.info("OTP write offset: 0x{:x}".format(index * self.OTP_CFG_SCRIPT_ENTRY_SIZE))
+                logging.info(
+                    "OTP write offset: 0x{:x}".format(
+                        index * self.OTP_CFG_SCRIPT_ENTRY_SIZE
+                    )
+                )
                 return count, (index * self.OTP_CFG_SCRIPT_ENTRY_SIZE)
 
             # Check for stop command
-            if (entry == 0x00000000):
+            if entry == 0x00000000:
                 logging.info("OTP is locked")
                 return count, -2
 
             logging.debug("OTP {}: {:x}".format(index, entry))
 
             # Decode entry and skip data values
-            msb = (entry & 0xf0000000) >> 24
-            if (msb == 0x60): # BOOTER
+            msb = (entry & 0xF0000000) >> 24
+            if msb == 0x60:  # BOOTER
                 index += 1
-            elif (msb == 0x70): # SWD MODE
+            elif msb == 0x70:  # SWD MODE
                 index += 1
-            elif (msb == 0x80): # UART STX
+            elif msb == 0x80:  # UART STX
                 index += 1
-            elif (msb == 0x90): # SDK ENTRIES
+            elif msb == 0x90:  # SDK ENTRIES
                 index += 1
-                index += (entry & 0x0000ff00) >> 8
-            else: # REG ENTRIES OR XTAL TRIM
+                index += (entry & 0x0000FF00) >> 8
+            else:  # REG ENTRIES OR XTAL TRIM
                 index += 2
 
         logging.info("OTP is full")
         return count, -1
 
     def otp_write(self, key, values, force):
-        """Add key and value to the OTP at the first available offset
+        """Add key and value to the OTP at the first available offset.
 
         Args:
             key: OTP key to add
@@ -1394,17 +1413,18 @@ class da1469x(da1468x_da1469x_da1470x):
         Returns:
             result: zero if ok, negative for error
         """
-
         # Get existing count and write offset
         count, offset = self.otp_read(key)
 
         # Cannot write when locked or full
-        if (offset < 0):
+        if offset < 0:
             return offset
 
         # Only write existing keys when forced
         if (count > 0) and not force:
-            logging.info("OTP write skipped because key exists, use --force to override")
+            logging.info(
+                "OTP write skipped because key exists, use --force to override"
+            )
             return 0
 
         # Write key with values
@@ -1415,6 +1435,7 @@ class da1469x(da1468x_da1469x_da1470x):
             return -3
 
         return 0
+
 
 class da1470x(da1469x):
     """Derived class for the da1470x devices."""
