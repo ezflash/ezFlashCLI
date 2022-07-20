@@ -178,7 +178,7 @@ class ezFlashCLI:
                         data += bytes().fromhex(d[2:])
                     except Exception as ex:
                         logging.error("Failed to decode byte: {}: {}".format(d, ex))
-                        sys.exit(0)
+                        sys.exit(1)
                 else:
                     data += int(d).to_bytes(1, "little")
 
@@ -194,8 +194,7 @@ class ezFlashCLI:
                 logging.info("Flash write success")
             else:
                 logging.error("Flash write failed")
-
-            sys.exit(1)
+                sys.exit(1)
 
         elif self.args.operation == "write_flash":
 
