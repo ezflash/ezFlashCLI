@@ -371,6 +371,7 @@ class da1453x_da1458x(da14xxx):
             my_data_array: bytes array
             address: destination address
         """
+        my_data_array += b"\xFF" * (512 - len(my_data_array))
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
             self.FLASH_ARRAY_BASE + address, len(fileData), c_char_p(fileData)
