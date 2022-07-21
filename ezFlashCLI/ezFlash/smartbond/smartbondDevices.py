@@ -1259,6 +1259,10 @@ class da1469x(da1468x_da1469x_da1470x):
             self.flash_program_data(ph, 0x0)
             self.flash_program_data(ph, 0x1000)
         logging.info("[DA1469x] Program success")
+        
+        # reset and run the cpu
+        self.link.reset()
+        
         return 1
 
     def otp_init(self):
