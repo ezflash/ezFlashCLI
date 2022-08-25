@@ -302,7 +302,7 @@ class pyjlink(object):
         try:
             self.logger.debug("Read 70x identifier")
             id = self.rd_mem(32, 0x50040000, 4)
-            if id == [0, 65535, 65535, 0]:
+            if id[0] < 0x30 or id[0] > 0xFF:
                 self.logger.debug("Read 69x identifier")
                 id = self.rd_mem(32, 0x50040200, 4)
         except Exception:

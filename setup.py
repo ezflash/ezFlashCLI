@@ -21,9 +21,29 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+import os
+import re
+
 from setuptools import find_packages, setup
 
-from ezFlashCLI.cli import __version__
+import ezFlashCLI
+
+version = ezFlashCLI.get_version_from_git()
+
+try:
+    relStatus = os.environ["EZFLASH_RELEASE"]
+except KeyError:
+    relStatus = "development"
+
+if not ("dirty" in version) and relStatus == "release":
+    index = re.search(".dev", version).start()
+    version = version[:index]
+
+
+ezFlashCLI.write_version_file(version)
+
+print("Building ezFlashCLI version", version)
+
 
 with open("README.md") as readme_file:
     readme = readme_file.read()
@@ -33,12 +53,13 @@ requirements = []
 
 test_requirements = [
     # TODO: put package test requirements here
+    "pyserial",
 ]
 
 
 setup(
     name="ezFlashCLI",
-    version=__version__,
+    version=version,
     description="Command line tool to manipulate microcontroller flash",
     long_description_content_type="text/markdown",
     long_description=readme,
@@ -75,3 +96,10 @@ setup(
     },
     tests_require=test_requirements,
 )
+
+print("Removing version.txt")
+try:
+    os.remove(ezFlashCLI.VERSION_FILE_PATH)
+except Exception as e:
+    print("Failed to remove version file", e)
+    pass
