@@ -35,7 +35,7 @@ try:
 except KeyError:
     relStatus = "development"
 
-if not ("dirty" in version) and os.environ["EZFLASH_RELEASE"] == "release":
+if not ("dirty" in version) and relStatus == "release":
     index = re.search(".dev", version).start()
     version = version[:index]
 
