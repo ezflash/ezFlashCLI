@@ -22,7 +22,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.3"
 
 
 import argparse
@@ -235,18 +235,21 @@ class ezFlashCLI:
                 )
                 sys.exit(1)
 
+            parameters = {}
+            parameters["active_fw_image_address"] = self.args.active_image_address
+            parameters["update_fw_image_address"] = self.args.update_image_address
             self.probeDevice()
             self.probeFlash()
             if self.flashid is None:
                 logging.info("Flash chip not found")
                 sys.exit(1)
+            parameters["flashid"] = self.flashid
 
             self.importAndAssignDevice(self.deviceType)
             self.da.connect(self.args.jlink)
             fileData = fp.read()
             fp.close()
-
-            if self.da.flash_program_image(fileData, self.flashid):
+            if self.da.flash_program_image(fileData, parameters):
                 logging.info("Flash image success")
             else:
                 logging.error("Flash image failed")
@@ -505,6 +508,20 @@ class ezFlashCLI:
             "image_flash", help="Write the flash binary"
         )
         flash_parser.add_argument("filename", help="Binary file path")
+
+        flash_parser.add_argument(
+            "--active_image_address",
+            type=lambda x: int(x, 0),
+            required=False,
+            help="Active image address",
+        )
+
+        flash_parser.add_argument(
+            "--update_image_address",
+            type=lambda x: int(x, 0),
+            required=False,
+            help="Update image address",
+        )
 
         flash_parser = self.subparsers.add_parser(
             "product_header_check", help="Read the product header and check"
