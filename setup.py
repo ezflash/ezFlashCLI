@@ -22,12 +22,19 @@
 
 
 import os
+import re
 
 from setuptools import find_packages, setup
 
 import ezFlashCLI
 
 version = ezFlashCLI.get_version_from_git()
+
+if not ("dirty" in version) and os.environ["EZFLASH_RELEASE"] == "release":
+    index = re.search(".dev", version).start()
+    version = version[:index]
+
+
 ezFlashCLI.write_version_file(version)
 
 print("Building ezFlashCLI version", version)
