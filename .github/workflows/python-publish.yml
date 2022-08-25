@@ -3,6 +3,9 @@
 
 name: Upload Python Package
 
+env:
+  EZFLASH_RELEASE: release
+
 on:
   release:
     types: [created]
