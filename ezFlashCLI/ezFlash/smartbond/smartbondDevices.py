@@ -324,7 +324,7 @@ class da1453x_da1458x(da14xxx):
 
         return 1
 
-    def flash_program_image(self, fileData, address=0x0):
+    def flash_program_image(self, fileData, parameters):
         """Program image in the flash.
 
         Args:
@@ -352,11 +352,7 @@ class da1453x_da1458x(da14xxx):
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE, len(data), c_char_p(data))
         bytes_flashed = self.link.jl.JLINKARM_EndDownload()
         if bytes_flashed < 0:
-            logging.error(
-                "Download failed with code: @address {}, {}".format(
-                    address, bytes_flashed
-                )
-            )
+            logging.error("Download failed with code: {}".format(bytes_flashed))
             return 0
 
         # reset and halt the cpu
@@ -502,14 +498,14 @@ class da14531(da1453x_da1458x):
         self.link.wr_mem(16, self.HWR_CTRL_REG, 0x0)
         self.link.wr_mem(16, self.P00_MODE_REG, self.P00_MODE_REG_RESET)
 
-    def flash_program_image(self, fileData, address=0x0):
+    def flash_program_image(self, fileData, parameters):
         """Program an image in the flash.
 
         Args:
             fileData: byte array
             address: access address
         """
-        result = super().flash_program_image(fileData, address)
+        result = super().flash_program_image(fileData, parameters)
         self.release_reset()
         return result
 
@@ -991,6 +987,7 @@ class da1469x(da1468x_da1469x_da1470x):
     QPSPIC_BASE = 0x38000000
     PRODUCT_HEADER_SIZE = 0x1000
     IMG_IVT_OFFSET = 0x400
+    CACHE_FLASH_REG = 0x100C0040
 
     OTPC_MODE_REG = 0x00  # Mode register
     OTPC_STAT_REG = 0x04  # Status register
@@ -1227,7 +1224,20 @@ class da1469x(da1468x_da1469x_da1470x):
 
         return product_header
 
-    def flash_program_image(self, fileData, flashid):
+    def check_address(self, address):
+        """Check if an address is within the parameters for the cache.
+
+        Args:
+            address: Address to check
+        """
+        cache_flash_reg = self.link.rd_mem(32, self.CACHE_FLASH_REG, 1)
+        flash_region_size = 0x2000000 >> (cache_flash_reg[0] & 0x7)
+        print(hex(address % flash_region_size))
+        if address < 0x2000 or address % flash_region_size > 0x3000:
+            return False
+        return True
+
+    def flash_program_image(self, fileData, parameters):
         """Program and image in the flash.
 
         Args:
@@ -1245,15 +1255,37 @@ class da1469x(da1468x_da1469x_da1470x):
                 fileData = ih + fileData
 
             logging.info("[DA1469x] Program bin")
-            self.flash_program_data(fileData, _69x_DEFAULT_IMAGE_ADDRESS)
+            active_fw_image_address = _69x_DEFAULT_IMAGE_ADDRESS
+            if parameters["active_fw_image_address"] is not None:
+                if not self.check_address(parameters["active_fw_image_address"]):
+                    logging.error(
+                        "active_fw_image_address out of range, it should be bigger than 0x2000 and the Firmware partition needs to start at an address which is a CACHE_FLASH_REG[FLASH_REGION_SIZE] multiple plus an offset of zero to three sectors"
+                    )
+                    return 0
+                active_fw_image_address = parameters["active_fw_image_address"]
+            update_fw_image_address = active_fw_image_address
+            if parameters["update_fw_image_address"] is not None:
+                if not self.check_address(parameters["update_fw_image_address"]):
+                    logging.error(
+                        "update_fw_image_address out of range, it should be bigger than 0x2000 and the Firmware partition needs to start at an address which is a CACHE_FLASH_REG[FLASH_REGION_SIZE] multiple plus an offset of zero to three sectors"
+                    )
+                    return 0
+                update_fw_image_address = parameters["update_fw_image_address"]
+            logging.debug(
+                "[DA1469x] active_fw_image_address " + str(active_fw_image_address)
+            )
+            logging.debug(
+                "[DA1469x] update_fw_image_address " + str(update_fw_image_address)
+            )
+            self.flash_program_data(fileData, active_fw_image_address)
 
             logging.info("[DA1469x] Program product header")
             ph = self.make_product_header(
-                flashid["flash_burstcmda_reg_value"],
-                flashid["flash_burstcmdb_reg_value"],
-                flashid["flash_write_config_command"],
-                active_fw_image_address=_69x_DEFAULT_IMAGE_ADDRESS,
-                update_fw_image_address=_69x_DEFAULT_IMAGE_ADDRESS,
+                parameters["flashid"]["flash_burstcmda_reg_value"],
+                parameters["flashid"]["flash_burstcmdb_reg_value"],
+                parameters["flashid"]["flash_write_config_command"],
+                active_fw_image_address=active_fw_image_address,
+                update_fw_image_address=update_fw_image_address,
             )
             self.flash_program_data(ph, 0x0)
             self.flash_program_data(ph, 0x1000)
@@ -1507,7 +1539,7 @@ class da1468x(da1468x_da1469x_da1470x):
         self.set_qspi_clk()
         return super().flash_probe()
 
-    def flash_program_image(self, fileData, flashid):
+    def flash_program_image(self, fileData, parameters):
         """Program and image in the flash.
 
         Args:
