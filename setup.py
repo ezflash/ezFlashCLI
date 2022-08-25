@@ -30,6 +30,11 @@ import ezFlashCLI
 
 version = ezFlashCLI.get_version_from_git()
 
+try:
+    relStatus = os.environ["EZFLASH_RELEASE"]
+except KeyError:
+    relStatus = "development"
+
 if not ("dirty" in version) and os.environ["EZFLASH_RELEASE"] == "release":
     index = re.search(".dev", version).start()
     version = version[:index]
