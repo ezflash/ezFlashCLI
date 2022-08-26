@@ -1263,13 +1263,6 @@ class da1469x(da1468x_da1469x_da1470x):
                     return 0
                 active_fw_image_address = parameters["active_fw_image_address"]
             update_fw_image_address = active_fw_image_address
-            if parameters["update_fw_image_address"] is not None:
-                if not self.check_address(parameters["update_fw_image_address"]):
-                    logging.error(
-                        "update_fw_image_address out of range, it should be bigger than 0x2000 and the Firmware partition needs to start at an address which is a CACHE_FLASH_REG[FLASH_REGION_SIZE] multiple plus an offset of zero to three sectors"
-                    )
-                    return 0
-                update_fw_image_address = parameters["update_fw_image_address"]
             logging.debug(
                 "[DA1469x] active_fw_image_address " + str(active_fw_image_address)
             )

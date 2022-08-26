@@ -235,7 +235,6 @@ class ezFlashCLI:
 
             parameters = {}
             parameters["active_fw_image_address"] = self.args.active_image_address
-            parameters["update_fw_image_address"] = self.args.update_image_address
             self.probeDevice()
             self.probeFlash()
             if self.flashid is None:
@@ -512,13 +511,6 @@ class ezFlashCLI:
             type=lambda x: int(x, 0),
             required=False,
             help="Active image address",
-        )
-
-        flash_parser.add_argument(
-            "--update_image_address",
-            type=lambda x: int(x, 0),
-            required=False,
-            help="Update image address",
         )
 
         flash_parser = self.subparsers.add_parser(
