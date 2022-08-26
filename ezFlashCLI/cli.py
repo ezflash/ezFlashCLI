@@ -22,7 +22,6 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-
 import argparse
 import json
 import logging
