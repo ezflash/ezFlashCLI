@@ -64,6 +64,9 @@ class HW_QSPI_COMMON_CMD(IntEnum):
     WRITE_DISABLE = (0x04,)
     READ_STATUS_REGISTER = (0x05,)
     WRITE_ENABLE = (0x06,)
+    READ_PROTECTION_REGISTERS = (0x3C,)
+    PROTECT_SECTOR = (0x36,)
+    UNPROTECT_SECTOR = (0x39,)
     SECTOR_ERASE = (0x20,)
     QUAD_PAGE_PROGRAM = (0x32,)
     QPI_PAGE_PROGRAM = (0x02,)
@@ -295,6 +298,48 @@ class da1453x_da1458x(da14xxx):
 
         return (manufacturer, deviceId, density)
 
+    def flash_get_software_protection(self):
+        """Read the protected regions of flash.
+
+        Args:
+            None
+        """
+        # reset and halt the cpu
+        self.link.reset()
+
+        # init the flash
+        self.flash_init()
+
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.READ_STATUS_REGISTER)
+        protection_bits = (
+            self.spi_access8(HW_QSPI_COMMON_CMD.READ_STATUS_REGISTER) & 0xC
+        ) >> 2
+        self.spi_cs_high()
+        return protection_bits
+
+    def flash_software_unprotect(self):
+        """Send the write enable command.
+
+        Args:
+            None
+        """
+        logging.debug("Disabling flash protection.")
+        # reset and halt the cpu
+        self.link.reset()
+
+        # init the flash
+        self.flash_init()
+
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.WRITE_ENABLE)
+        self.spi_cs_high()
+
+        self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.WRITE_STATUS_REGISTER)
+        self.spi_access8(0x00)
+        self.spi_cs_high()
+
     def flash_erase(self):
         """Execute chip erase.
 
@@ -306,6 +351,9 @@ class da1453x_da1458x(da14xxx):
 
         # init the flash
         self.flash_init()
+
+        if self.flash_get_software_protection() != 0:
+            self.flash_software_unprotect()
 
         self.spi_cs_low()
         self.spi_access8(HW_QSPI_COMMON_CMD.WRITE_ENABLE)
@@ -348,6 +396,9 @@ class da1453x_da1458x(da14xxx):
             # bootable image
             data = fileData
 
+        if self.flash_get_software_protection() != 0:
+            self.flash_software_unprotect()
+
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(self.FLASH_ARRAY_BASE, len(data), c_char_p(data))
         bytes_flashed = self.link.jl.JLINKARM_EndDownload()
@@ -367,6 +418,9 @@ class da1453x_da1458x(da14xxx):
             my_data_array: bytes array
             address: destination address
         """
+        if self.flash_get_software_protection() != 0:
+            self.flash_software_unprotect()
+
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
             self.FLASH_ARRAY_BASE + address, len(fileData), c_char_p(fileData)
