@@ -82,14 +82,22 @@ class ezFlashCLI:
                 if device.SerialNumber != 0:
                     self.devicelist.append(device)
 
+            self.devicelist.sort()
             if (
                 len(self.devicelist) > 1
                 and not self.args.jlink
                 and self.args.operation != "list"
             ):
-                logging.error("JLink interface must be selected using -j option")
+                logging.warning("JLink interface must be selected using -j option")
+                logging.warning(
+                    "Multiple interfaces detected, the lowest serial number is selected"
+                )
                 self.display_jlink_devices()
-                sys.exit(1)
+
+                logging.warning(
+                    "Selecting interfface {}".format(self.devicelist[0].SerialNumber)
+                )
+                self.args.jlink = self.devicelist[0].SerialNumber
 
         # list the jlink interfaces
         if self.args.operation == "list":

@@ -101,6 +101,10 @@ class JLINKARM_EMU_CONNECT_INFO(ctypes.Structure):
         ("aPadding", ctypes.c_ubyte * 34),
     ]  # Pad struct size to 264 bytes
 
+    def __lt__(self, other):
+        """Sort JLink interfaces by increasing SerialNumber."""
+        return self.SerialNumber < other.SerialNumber
+
 
 class JLINKARM_ERROR_CODES(IntEnum):
     """JLink error codes enumeration."""
