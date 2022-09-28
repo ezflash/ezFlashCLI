@@ -439,6 +439,98 @@ class da1453x_da1458x(da14xxx):
 
         return 1
 
+    def make_image_header(self, image):
+        """Image header generation.
+
+        Args:
+            Image: byte array containing the application
+        """
+        header = (
+            b"\x70\x51\xAA\x01"  # Signature
+            + struct.pack("<I", len(image))  # Binary size
+            + struct.pack("<I", binascii.crc32(image))  # Crc32
+            + b"ezFlashCLI\x00\x00\x00\x00\x00\x00"  # Version string
+            + struct.pack("<I", int(time.time()))  # Timestamp
+        )
+        for i in range(32):
+            header += struct.pack("b", 0x0)
+        return header
+
+    def flash_program_image_with_bootloader(self, parameters):
+        """Program a secondary bootloader and an image in the flash.
+
+        Args:
+            parameters: dictionary of parameters
+        """
+        fileData = parameters["fileData"]
+        if "bootloader" in parameters and parameters["bootloader"] is not None:
+            bootloader = parameters["bootloader"]
+        else:
+            bootloader_file = open(
+                "ezFlashCLI\\ezFlash\\smartbond\\binaries\\secondary_bootloader_531.bin",
+                "rb",
+            )
+            bootloader = bootloader_file.read()
+            bootloader_file.close()
+
+        image1_address = 0x4000
+        image2_address = 0xF000
+        product_header_position = 0x1A000
+        if (
+            "product_header_position" in parameters
+            and parameters["product_header_position"] is not None
+        ):
+            product_header_position = parameters["product_header_position"]
+        if "image1_address" in parameters and parameters["image1_address"] is not None:
+            image1_address = parameters["image1_address"]
+        if "image2_address" in parameters and parameters["image2_address"] is not None:
+            image2_address = parameters["image2_address"]
+        product_header = (
+            b"\x70\x52\x00\x00"
+            + struct.pack("<I", image1_address)
+            + struct.pack("<I", image2_address)
+        )
+
+        if fileData[0] != 0x70 or fileData[1] != 0x51:
+            logging.info("Not a single image")
+            if fileData[3] != 0x7:
+                print(
+                    "This is not a binary with stack pointer at the beginning",
+                    fileData[3],
+                )
+                return 0
+            else:
+                logging.info("adding image header")
+                header = self.make_image_header(fileData)
+                data = header + fileData
+        else:
+            # Already single image
+            data = fileData
+
+        if self.flash_program_data(product_header, product_header_position):
+            logging.info("Flash product header success")
+        else:
+            logging.error("Flash product header failed")
+            return 0
+
+        if self.flash_program_data(data, image1_address):
+            logging.info("Flash image success")
+        else:
+            logging.error("Flash image failed")
+            return 0
+
+        if self.flash_program_data(data, image2_address):
+            logging.info("Flash image success")
+        else:
+            logging.error("Flash image failed")
+            return 0
+        if self.flash_program_image(bootloader, parameters):
+            logging.info("Flash bootloader success")
+            return 1
+        else:
+            logging.error("Flash bootloader failed")
+            return 0
+
 
 class da14531(da1453x_da1458x):
     """Derived class for the da14531 devices."""
@@ -560,6 +652,16 @@ class da14531(da1453x_da1458x):
             address: access address
         """
         result = super().flash_program_image(fileData, parameters)
+        self.release_reset()
+        return result
+
+    def flash_program_image_with_bootloader(self, parameters):
+        """Program a secondary bootloader and an image in the flash.
+
+        Args:
+            parameters: dictionary of parameters
+        """
+        result = super().flash_program_image_with_bootloader(parameters)
         self.release_reset()
         return result
 

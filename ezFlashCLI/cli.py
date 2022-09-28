@@ -260,6 +260,34 @@ class ezFlashCLI:
                 logging.error("Flash image failed")
                 sys.exit(1)
 
+        elif self.args.operation == "image_bootloader_flash":
+
+            try:
+                fp = open(self.args.filename, "rb")
+            except Exception as ex:
+                logging.error(
+                    "Failed to open {}. Err:{}".format(self.args.filename, ex)
+                )
+                sys.exit(1)
+
+            parameters = {}
+            self.probeDevice()
+            self.probeFlash()
+            if self.flashid is None:
+                logging.info("Flash chip not found")
+                sys.exit(1)
+            parameters["flashid"] = self.flashid
+
+            self.importAndAssignDevice(self.deviceType)
+            self.da.connect(self.args.jlink)
+            parameters["fileData"] = fp.read()
+            fp.close()
+            if self.da.flash_program_image_with_bootloader(parameters):
+                logging.info("Flash image success")
+            else:
+                logging.error("Flash image failed")
+                sys.exit(1)
+
         elif self.args.operation == "linker_header":
             """Generate the product header based on the probed flash
 
@@ -528,6 +556,12 @@ class ezFlashCLI:
             "linker_header",
             help="Generate product header which can be copied in the linker script",
         )
+
+        bootloader_flash_parser = self.subparsers.add_parser(
+            "image_bootloader_flash", help="Write an image to flash and add bootloader"
+        )
+        bootloader_flash_parser.add_argument("filename", help="Binary file path")
+        # TODO add custom bootloader
 
         binary_parser = self.subparsers.add_parser(
             "read_flash_bin",
