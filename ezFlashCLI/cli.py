@@ -353,6 +353,19 @@ class ezFlashCLI:
             if result < 0:
                 sys.exit(1)
 
+        elif self.args.operation == "otp_blank_check":
+
+            self.probeDevice()
+            self.probeFlash()
+            self.importAndAssignDevice(self.deviceType)
+            self.da.connect(self.args.jlink)
+            if self.da.otp_blank_check() is True:
+                logging.info("OTP is blank")
+                sys.exit(0)
+            else:
+                logging.info("OTP is NOT blank")
+                sys.exit(1)
+
         else:
             self.parser.print_help(sys.stderr)
         sys.exit(0)
@@ -562,6 +575,10 @@ class ezFlashCLI:
         )
         bootloader_flash_parser.add_argument("filename", help="Binary file path")
         # TODO add custom bootloader
+
+        bootloader_flash_parser = self.subparsers.add_parser(
+            "otp_blank_check", help="Check if OTP is blank"
+        )
 
         binary_parser = self.subparsers.add_parser(
             "read_flash_bin",
