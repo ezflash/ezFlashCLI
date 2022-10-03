@@ -710,6 +710,23 @@ class da14531(da1453x_da1458x):
             )
         return otp_blank
 
+    def otp_read_raw(self, address, length=1):
+        """Check if the program area of OTP is blank."""
+        if address < 0:
+            logging.error("Address can't be negative")
+            return 0
+        if (
+            address >= self.OTP_SIZE and address < self.OTP_START
+        ) or address >= self.OTP_SIZE + self.OTP_START:
+            logging.error("Address out of range")
+            return 0
+        if address < self.OTP_SIZE:
+            address += self.OTP_START
+        self.otp_init()
+        self.otp_set_mode(self.OTPC_MODE_READ)
+
+        return self.link.rd_mem(8, address, length)
+
     def release_reset(self):
         """On 531 the reset pin is shared with the default flash MOSI pin.
 

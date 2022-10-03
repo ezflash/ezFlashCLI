@@ -366,6 +366,21 @@ class ezFlashCLI:
                 logging.info("OTP is NOT blank")
                 sys.exit(1)
 
+        elif self.args.operation == "read_otp_hex":
+
+            self.probeDevice()
+            self.probeFlash()
+            self.importAndAssignDevice(self.deviceType)
+            self.da.connect(self.args.jlink)
+            data = self.da.otp_read_raw(self.args.addr, self.args.length)
+            current_address = self.args.addr
+            line_width = 16
+            while len(data):
+                dataByes = " ".join("{:02x}".format(x) for x in data[:line_width])
+                logging.info("{:08X}: {}".format(current_address, dataByes))
+                data = data[line_width:]
+                current_address += line_width
+
         else:
             self.parser.print_help(sys.stderr)
         sys.exit(0)
@@ -547,6 +562,17 @@ class ezFlashCLI:
             "addr", type=lambda x: int(x, 0), help="Address in the flash area"
         )
         flash_parser.add_argument(
+            "length", type=lambda x: int(x, 0), help="number of bytes to read"
+        )
+
+        read_otp_parser = self.subparsers.add_parser(
+            "read_otp_hex", help="read data at specified address and length"
+        )
+
+        read_otp_parser.add_argument(
+            "addr", type=lambda x: int(x, 0), help="Address in the otp area"
+        )
+        read_otp_parser.add_argument(
             "length", type=lambda x: int(x, 0), help="number of bytes to read"
         )
 
