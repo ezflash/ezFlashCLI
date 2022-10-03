@@ -381,6 +381,18 @@ class ezFlashCLI:
                 data = data[line_width:]
                 current_address += line_width
 
+        elif self.args.operation == "read_otp_bin":
+
+            with open(self.args.file, "wb") as fp:
+                self.probeDevice()
+                self.probeFlash()
+                self.importAndAssignDevice(self.deviceType)
+                self.da.connect(self.args.jlink)
+                data = self.da.otp_read_raw(self.args.addr, self.args.length)
+                for datum in data:
+                    fp.write(datum.to_bytes(1, "little"))
+                fp.close()
+
         else:
             self.parser.print_help(sys.stderr)
         sys.exit(0)
@@ -618,6 +630,19 @@ class ezFlashCLI:
         )
 
         binary_parser.add_argument("file", type=str, help="output file")
+
+        otp_binary_parser = self.subparsers.add_parser(
+            "read_otp_bin",
+            help="Read OTP and output to file",
+        )
+        otp_binary_parser.add_argument(
+            "addr", type=lambda x: int(x, 0), help="Address in the OTP area"
+        )
+        otp_binary_parser.add_argument(
+            "length", type=lambda x: int(x, 0), help="number of bytes to read"
+        )
+
+        otp_binary_parser.add_argument("file", type=str, help="output file")
 
         self.args = self.parser.parse_args()
 
