@@ -353,6 +353,46 @@ class ezFlashCLI:
             if result < 0:
                 sys.exit(1)
 
+        elif self.args.operation == "otp_blank_check":
+
+            self.probeDevice()
+            self.probeFlash()
+            self.importAndAssignDevice(self.deviceType)
+            self.da.connect(self.args.jlink)
+            if self.da.otp_blank_check() is True:
+                logging.info("OTP is blank")
+                sys.exit(0)
+            else:
+                logging.info("OTP is NOT blank")
+                sys.exit(1)
+
+        elif self.args.operation == "read_otp_hex":
+
+            self.probeDevice()
+            self.probeFlash()
+            self.importAndAssignDevice(self.deviceType)
+            self.da.connect(self.args.jlink)
+            data = self.da.otp_read_raw(self.args.addr, self.args.length)
+            current_address = self.args.addr
+            line_width = 16
+            while len(data):
+                dataByes = " ".join("{:02x}".format(x) for x in data[:line_width])
+                logging.info("{:08X}: {}".format(current_address, dataByes))
+                data = data[line_width:]
+                current_address += line_width
+
+        elif self.args.operation == "read_otp_bin":
+
+            with open(self.args.file, "wb") as fp:
+                self.probeDevice()
+                self.probeFlash()
+                self.importAndAssignDevice(self.deviceType)
+                self.da.connect(self.args.jlink)
+                data = self.da.otp_read_raw(self.args.addr, self.args.length)
+                for datum in data:
+                    fp.write(datum.to_bytes(1, "little"))
+                fp.close()
+
         else:
             self.parser.print_help(sys.stderr)
         sys.exit(0)
@@ -537,6 +577,17 @@ class ezFlashCLI:
             "length", type=lambda x: int(x, 0), help="number of bytes to read"
         )
 
+        read_otp_parser = self.subparsers.add_parser(
+            "read_otp_hex", help="read data at specified address and length"
+        )
+
+        read_otp_parser.add_argument(
+            "addr", type=lambda x: int(x, 0), help="Address in the otp area"
+        )
+        read_otp_parser.add_argument(
+            "length", type=lambda x: int(x, 0), help="number of bytes to read"
+        )
+
         flash_parser = self.subparsers.add_parser(
             "image_flash", help="Write the flash binary"
         )
@@ -563,6 +614,10 @@ class ezFlashCLI:
         bootloader_flash_parser.add_argument("filename", help="Binary file path")
         # TODO add custom bootloader
 
+        bootloader_flash_parser = self.subparsers.add_parser(
+            "otp_blank_check", help="Check if OTP is blank"
+        )
+
         binary_parser = self.subparsers.add_parser(
             "read_flash_bin",
             help="Read flash and output to file",
@@ -575,6 +630,19 @@ class ezFlashCLI:
         )
 
         binary_parser.add_argument("file", type=str, help="output file")
+
+        otp_binary_parser = self.subparsers.add_parser(
+            "read_otp_bin",
+            help="Read OTP and output to file",
+        )
+        otp_binary_parser.add_argument(
+            "addr", type=lambda x: int(x, 0), help="Address in the OTP area"
+        )
+        otp_binary_parser.add_argument(
+            "length", type=lambda x: int(x, 0), help="number of bytes to read"
+        )
+
+        otp_binary_parser.add_argument("file", type=str, help="output file")
 
         self.args = self.parser.parse_args()
 

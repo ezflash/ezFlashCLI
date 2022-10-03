@@ -176,6 +176,11 @@ class da14xxx:
         logging.error("OTP not implemented for this device")
         return -9
 
+    def otp_blank_check(self):
+        """Fallback function for OTP blank check."""
+        logging.error("OTP not implemented for this device")
+        sys.exit(1)
+
 
 class da1453x_da1458x(da14xxx):
     """Derived class for the DA145xx and DA1458xx devices."""
@@ -535,6 +540,28 @@ class da1453x_da1458x(da14xxx):
 class da14531(da1453x_da1458x):
     """Derived class for the da14531 devices."""
 
+    OTPC_MODE_REG = 0x07F40000
+    OTPC_STAT_REG = 0x07F40004
+    OTPC_TIM1_REG = 0x07F40010
+    OTPC_TIM2_REG = 0x07F40014
+    OTPC_MODE_DSTBY = 0  # OTP cell is powered on, LDO is inactive
+    OTPC_MODE_STBY = 1  # OTP cell and LDO are powered on, chip select is deactivated
+    OTPC_MODE_READ = 2  # OTP cell can be read
+    OTPC_MODE_PROG = 3  # OTP cell can be programmed
+    OTPC_MODE_PVFY = 4  # OTP cell can be read in PVFY margin read mode
+    OTPC_MODE_RINI = 5  # OTP cell can be read in RINI margin read mode
+    OTPC_MODE_AREAD = 6  # OTP cell can be read by the internal DMA
+
+    OTPC_TIM1_REG_RESET = 0x0999000F
+    OTPC_TIM2_REG_RESET = 0xA4040409
+    OTP_START = 0x07F80000
+    OTP_HEADER_START = 0x07F87ED0
+    OTP_SIZE = 0x8000
+    OTP_CELL_SIZE = 0x04
+    OTP_HEADER_SIZE = OTP_SIZE - (OTP_HEADER_START - OTP_START)
+    OTP_CELL_NUM = int(OTP_SIZE / OTP_CELL_SIZE)  # Maximum number of OTP cells
+    OTP_HEADER_CELL_NUM = int(OTP_HEADER_SIZE / OTP_CELL_SIZE)
+
     SPI_PORT = 0
     SPI_CLK_PIN = 4
     SPI_CS_PIN = 1
@@ -635,6 +662,70 @@ class da14531(da1453x_da1458x):
             self.SetBits16(self.SPI_CONFIG_REG, 0x7C, 31)
         else:
             self.SetBits16(self.SPI_CONFIG_REG, 0x7C, 7)
+
+    def otp_set_mode(self, mode):
+        """Move the OTPC in new mode."""
+        # Change mode only if new mode is different than the old one
+        otpmode = self.link.rd_mem(32, self.OTPC_MODE_REG, 1)[0]
+        if otpmode != mode:
+            self.link.wr_mem(32, self.OTPC_MODE_REG, mode)
+
+        # Wait for mode change
+        while (self.link.rd_mem(32, self.OTPC_STAT_REG, 1)[0] & 0x4) == 0:
+            pass
+
+    def otp_init(self):
+        """Init the OTP controller."""
+        # Enable OTPC clock
+        clkreg = self.link.rd_mem(16, self.CLK_AMBA_REG, 1)[0]
+        self.link.wr_mem(16, self.CLK_AMBA_REG, clkreg | 0x80)
+
+        # Mode to standby
+        self.otp_set_mode(self.OTPC_MODE_DSTBY)
+
+        # Default timings
+        self.link.wr_mem(32, self.OTPC_TIM1_REG, self.OTPC_TIM1_REG_RESET)
+        self.link.wr_mem(32, self.OTPC_TIM2_REG, self.OTPC_TIM1_REG_RESET)
+
+    def otp_blank_check(self):
+        """Check if the program area of OTP is blank."""
+        self.otp_init()
+        self.otp_set_mode(self.OTPC_MODE_READ)
+        otp_contents = self.link.rd_mem(32, self.OTP_START, self.OTP_CELL_NUM)
+        otp_blank = True
+        header_blank = True
+        for entry in range(self.OTP_CELL_NUM - self.OTP_HEADER_CELL_NUM):
+            if otp_contents[entry] != 0xFFFFFFFF:
+                otp_blank = False
+                break
+        for entry in range(
+            self.OTP_CELL_NUM - self.OTP_HEADER_CELL_NUM, self.OTP_CELL_NUM
+        ):
+            if otp_contents[entry] != 0xFFFFFFFF:
+                header_blank = False
+                break
+        if header_blank is True:
+            logging.error(
+                "The OTP header is blank, this shouldn't be possible. Please ensure the connection to the chip is correct"
+            )
+        return otp_blank
+
+    def otp_read_raw(self, address, length=1):
+        """Check if the program area of OTP is blank."""
+        if address < 0:
+            logging.error("Address can't be negative")
+            return 0
+        if (
+            address >= self.OTP_SIZE and address < self.OTP_START
+        ) or address >= self.OTP_SIZE + self.OTP_START:
+            logging.error("Address out of range")
+            return 0
+        if address < self.OTP_SIZE:
+            address += self.OTP_START
+        self.otp_init()
+        self.otp_set_mode(self.OTPC_MODE_READ)
+
+        return self.link.rd_mem(8, address, length)
 
     def release_reset(self):
         """On 531 the reset pin is shared with the default flash MOSI pin.
