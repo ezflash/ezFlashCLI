@@ -1791,7 +1791,7 @@ class da1468x(da1468x_da1469x_da1470x):
             logging.info("[DA1468x] Program binary")
             data = (
                 b"qQ\x00\x00\x80\x00"
-                + struct.pack(">H", len(fileData) - 8)
+                + struct.pack(">H", (len(fileData) - 8) & 0xFFFF)
                 + fileData[: (0x200 - 8)]
                 + fileData[0x200:]
             )
