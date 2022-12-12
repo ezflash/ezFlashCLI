@@ -1787,6 +1787,7 @@ class da1468x(da1468x_da1469x_da1470x):
         """
         if fileData[:2] == b"qQ":
             logging.info("[DA1468x] Program image")
+            data = fileData
         else:
             logging.info("[DA1468x] Program binary")
             data = (
