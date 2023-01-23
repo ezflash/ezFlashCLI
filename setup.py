@@ -69,6 +69,7 @@ setup(
     packages=find_packages(),
     package_dir={"ezFlashCLI": "ezFlashCLI"},
     include_package_data=True,
+    package_data={"": ["ezFlash/smartbond/binaries/*.bin"]},
     install_requires=requirements,
     dependency_links=[],
     license="MIT license",
