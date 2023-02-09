@@ -95,10 +95,20 @@ class da1469xSerialLoader(object):
         if self.sp.read(1) != b"\x06":
             self.logger.error("Failed to get length ACK")
             return
-        self.sp.write(data)
 
+        chunkSize = 1024
         if self.args.one:
-            self.sp.read(len(data))
+            while len(data):
+                if len(data) >= chunkSize:
+                    self.sp.write(data[:chunkSize])
+                    self.sp.read(chunkSize)
+                    data = data[chunkSize:]
+                else:
+                    self.sp.write(data)
+                    self.sp.read(len(data))
+                    data = []
+        else:
+            self.sp.write(data)
 
         read_crc = int.from_bytes(self.sp.read(1), byteorder="little")
         if read_crc != crc:
