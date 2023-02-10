@@ -52,7 +52,6 @@ with open("README.md") as readme_file:
 requirements = []
 
 test_requirements = [
-    # TODO: put package test requirements here
     "pyserial",
 ]
 
@@ -86,6 +85,9 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     test_suite="tests",
     entry_points={

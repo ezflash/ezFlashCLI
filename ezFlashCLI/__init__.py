@@ -37,7 +37,7 @@ def get_version_from_git():
         .strip()
         .decode("utf-8")[1:]
     )
-
+    print("preversion: {}".format(version))
     # process the string to be PEP 440 compliant
     version = version.replace("-", ".dev", 1).replace("-", "+", 1).replace("-", ".", 1)
 
