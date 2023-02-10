@@ -38,7 +38,8 @@ except KeyError:
 if not ("dirty" in version) and relStatus == "release":
     index = re.search(".dev", version).start()
     version = version[:index]
-
+elif relStatus in "test":
+    version = "0.0.0.dev0"
 
 ezFlashCLI.write_version_file(version)
 

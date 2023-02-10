@@ -11,6 +11,8 @@ env:
   CACHE_VERSION: 1
   DEFAULT_PYTHON: 3.9
   PRE_COMMIT_HOME: ~/.cache/pre-commit
+  EZFLASH_RELEASE: test
+
 
 jobs:
   # Separate job to pre-populate the base dependency cache
@@ -48,7 +50,6 @@ jobs:
           . venv/bin/activate
           pip install -U pip setuptools pre-commit
           pip install -r requirements.txt
-          git describe --always --long --tags
           pip install -e .
 
   pre-commit:
