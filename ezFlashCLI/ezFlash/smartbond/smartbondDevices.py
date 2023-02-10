@@ -147,7 +147,6 @@ class da14xxx:
 
         """
         for flash in flash_db["flash_configurations"]:
-
             if flashId == (
                 int(flash["flash_manufacturer"], 16),
                 int(flash["flash_device_type"], 16),
@@ -972,7 +971,6 @@ class da1468x_da1469x_da1470x(da14xxx):
         self.flash_hw_qspi_cs_enable()
         self.flash_hw_qspi_write8(HW_QSPI_COMMON_CMD.READ_STATUS_REGISTER)
         while True:
-
             status = self.flash_hw_qspi_read8()
             if not (status & 0x1):
                 self.flash_hw_qspi_cs_disable()
