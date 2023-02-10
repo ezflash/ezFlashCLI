@@ -48,6 +48,7 @@ jobs:
           . venv/bin/activate
           pip install -U pip setuptools pre-commit
           pip install -r requirements.txt
+          git describe --always --long --tags
           pip install -e .
 
   pre-commit:
