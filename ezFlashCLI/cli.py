@@ -147,7 +147,6 @@ class ezFlashCLI:
                 sys.exit(1)
 
         elif self.args.operation == "read_flash":
-
             self.probeDevice()
             self.probeFlash()
             self.da.flash_configure_controller(self.flashid)
@@ -160,7 +159,6 @@ class ezFlashCLI:
                 data = data[line_width:]
                 current_address += line_width
         elif self.args.operation == "read_flash_bin":
-
             with open(self.args.file, "wb") as fp:
                 self.probeDevice()
                 self.probeFlash()
@@ -204,7 +202,6 @@ class ezFlashCLI:
             sys.exit(1)
 
         elif self.args.operation == "write_flash":
-
             try:
                 fp = open(self.args.filename, "rb")
             except Exception as ex:
@@ -232,7 +229,6 @@ class ezFlashCLI:
                 sys.exit(1)
 
         elif self.args.operation == "image_flash":
-
             try:
                 fp = open(self.args.filename, "rb")
             except Exception as ex:
@@ -261,7 +257,6 @@ class ezFlashCLI:
                 sys.exit(1)
 
         elif self.args.operation == "image_bootloader_flash":
-
             try:
                 fp = open(self.args.filename, "rb")
             except Exception as ex:
@@ -334,7 +329,6 @@ class ezFlashCLI:
                 logging.error("Product header mismatch")
 
         elif self.args.operation == "read_otp":
-
             self.probeDevice()
             self.probeFlash()
             self.importAndAssignDevice(self.deviceType)
@@ -344,7 +338,6 @@ class ezFlashCLI:
                 sys.exit(1)
 
         elif self.args.operation == "write_otp":
-
             self.probeDevice()
             self.probeFlash()
             self.importAndAssignDevice(self.deviceType)
@@ -354,7 +347,6 @@ class ezFlashCLI:
                 sys.exit(1)
 
         elif self.args.operation == "otp_blank_check":
-
             self.probeDevice()
             self.probeFlash()
             self.importAndAssignDevice(self.deviceType)
@@ -367,7 +359,6 @@ class ezFlashCLI:
                 sys.exit(1)
 
         elif self.args.operation == "read_otp_hex":
-
             self.probeDevice()
             self.probeFlash()
             self.importAndAssignDevice(self.deviceType)
@@ -382,7 +373,6 @@ class ezFlashCLI:
                 current_address += line_width
 
         elif self.args.operation == "read_otp_bin":
-
             with open(self.args.file, "wb") as fp:
                 self.probeDevice()
                 self.probeFlash()

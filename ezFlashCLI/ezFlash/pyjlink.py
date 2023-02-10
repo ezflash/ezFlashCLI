@@ -449,5 +449,5 @@ class pyjlink(object):
             extension = os.path.splitext(filename)[1][1:]
             ih.fromfile(filename, format=extension)
 
-            for (a, d) in zip(ih.addresses(), ih.tobinarray()):
+            for a, d in zip(ih.addresses(), ih.tobinarray()):
                 self.wr_mem(8, addr + a, d)

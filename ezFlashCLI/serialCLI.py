@@ -64,7 +64,6 @@ class da1469xSerialLoader(object):
         """Load application in the Smartbond device."""
         try:
             with open(self.args.application, "rb") as fp:
-
                 data = fp.read()
                 size = len(data)
         except Exception as ex:
@@ -159,5 +158,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()
