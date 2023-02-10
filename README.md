@@ -20,7 +20,7 @@ The tool relies on Segger J-Link™ library to control the Smartbond SWD interfa
 * DA14531
 * DA14585
 
-Know flash devices:
+Known flash devices:
 
 * MX25R2035F
 
@@ -44,21 +44,32 @@ Know flash devices:
   * DA14706
   * DA14708
 
-Know flash devices:
+Known flash devices:
 
-* P25Q80H
-* P25Q32LE
+* AT25FF081A
+* AT25FF161A
+* AT25FF321A
+* AT25SL321
+* AT25XE021A
 * EN25S16B
 * EN25S20A
-* W25Q128JW
-* MX25U3235F
-* W25Q80EW
-* W25Q32JW
-* IS25WP032
-* GD25LE32
 * GD25LE16
-* AT25FF081A
-* AT25SL321
+* GD25LE32
+* IS25WP032
+* MX25R2035F
+* MX25U3235F
+* MX25U6432
+* MX66LM1G45G
+* P25Q11U
+* P25Q32LE
+* P25Q80H
+* W25Q128JW
+* W25Q32JW
+* W25Q64JWIM
+* W25Q80EW
+* W25X10CL
+* W25X20CL
+* W25X40CL
 
 ## Installation
 
@@ -155,3 +166,16 @@ INFO:root:[DA1469x] Program success
 ```
 
 The tool will automatically make the input file bootable if needed
+
+### Program Flash and add secondary bootloader
+
+To use SUOTA a secondary bootloader is required. This command adds a precompiled version to the image and writes it all to flash.
+
+```
+> ezFlashCLI image_bootloader_flash <path to bin file>
+
+INFO:root:ezFlashCLI v1.0.X
+INFO:root:By using the program you accept the SEGGER J-link™ license
+INFO:root:[DA14531] Program image
+INFO:root:[DA14531] Program success
+```
