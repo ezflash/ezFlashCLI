@@ -37,7 +37,7 @@ class da1469xSerialLoader(object):
 
     def __init__(self):
         """Initialize and parse the input parameters."""
-        self.one_wire = False    # flag to detect one wire UART
+        self.one_wire = False  # flag to detect one wire UART
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -67,7 +67,7 @@ class da1469xSerialLoader(object):
         """Check if the device is connected in one wire UART mode."""
         self.sp.write(b"X")
         check = self.sp.read()
-        if check==b"X":
+        if check == b"X":
             # print("It's one Wire")
             self.one_wire = True
 
