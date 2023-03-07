@@ -19,13 +19,8 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-import os
 import subprocess
 from importlib import metadata
-
-VERSION_FILE_PATH = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "version.txt"
-)
 
 
 def get_version_from_git():
@@ -45,7 +40,7 @@ def get_version_from_git():
 
 
 try:
-    __version__ = metadata.version()
+    __version__ = metadata.version("ezFlashCLI")
 except Exception:
     try:
         # try to get the version from git
