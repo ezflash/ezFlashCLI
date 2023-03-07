@@ -101,9 +101,9 @@ setup(
     tests_require=test_requirements,
 )
 
-print("Removing version.txt")
-try:
-    os.remove(ezFlashCLI.VERSION_FILE_PATH)
-except Exception as e:
-    print("Failed to remove version file", e)
-    pass
+# print("Removing version.txt")
+# try:
+#     os.remove(ezFlashCLI.VERSION_FILE_PATH)
+# except Exception as e:
+#     print("Failed to remove version file", e)
+#     pass
