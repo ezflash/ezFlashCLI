@@ -37,6 +37,7 @@ class da1469xSerialLoader(object):
 
     def __init__(self):
         """Initialize and parse the input parameters."""
+        self.one_wire = False  # flag to detect one wire UART
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -58,7 +59,17 @@ class da1469xSerialLoader(object):
 
         self.sp = serial.Serial(self.args.port, BAUDRATE, timeout=TIMEOUT)
 
+        self.detect_one_wire()
+
         self.load()
+
+    def detect_one_wire(self):
+        """Check if the device is connected in one wire UART mode."""
+        self.sp.write(b"X")
+        check = self.sp.read()
+        if check == b"X":
+            # print("It's one Wire")
+            self.one_wire = True
 
     def load(self):
         """Load application in the Smartbond device."""
@@ -88,7 +99,7 @@ class da1469xSerialLoader(object):
         else:
             self.sp.write(b"\x01\x00\x00" + size.to_bytes(3, byteorder="little"))
 
-        if self.args.one:
+        if self.one_wire:
             self.sp.read(3)
 
         if self.sp.read(1) != b"\x06":
@@ -96,7 +107,7 @@ class da1469xSerialLoader(object):
             return
 
         chunkSize = 1024
-        if self.args.one:
+        if self.one_wire:
             while len(data):
                 if len(data) >= chunkSize:
                     self.sp.write(data[:chunkSize])
@@ -145,9 +156,9 @@ class da1469xSerialLoader(object):
             "--version", help="return version number", action="store_true"
         )
 
-        self.parser.add_argument(
-            "-o", "--one", help="setup 1-wire mode", action="store_true"
-        )
+        # self.parser.add_argument(
+        #    "-o", "--one", help="setup 1-wire mode", action="store_true"
+        # )
 
         self.args = self.parser.parse_args()
 
