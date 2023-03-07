@@ -21,6 +21,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 import os
 import subprocess
+from importlib import metadata
 
 VERSION_FILE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "version.txt"
@@ -43,19 +44,8 @@ def get_version_from_git():
     return version
 
 
-def write_version_file(version):
-    """Write the version information in the version file.
-
-    @param: version string
-    """
-    # generate the version before importing
-    with open(VERSION_FILE_PATH, "w") as version_file:
-        version_file.write(version)
-
-
 try:
-    with open(VERSION_FILE_PATH, "r") as fp:
-        __version__ = fp.read()
+    __version__ = metadata.version()
 except Exception:
     try:
         # try to get the version from git

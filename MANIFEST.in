@@ -1,3 +1,2 @@
-include ezFlashCLI/version.txt
 include ezFlashCLI/flash_database.json
 recursive-include  ezFlashCLI/third-party *
