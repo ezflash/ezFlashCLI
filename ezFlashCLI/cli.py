@@ -415,6 +415,17 @@ class ezFlashCLI:
             logging.error("Device not responding: {}".format(inst))
             sys.exit(1)
 
+        if self.deviceType == "da14531":
+            """Try to differentiate between DA14531-00 and DA14531-01"""
+            self.link.connect(self.args.jlink)
+            rom = self.link.rd_mem(8, 0x07F04000, 4)
+            self.link.close()
+            try:
+                self.deviceType = sbdev.DA14531_VARIANTS[str(rom)]
+
+            except Exception:
+                logging.warning("Unknown DA14531 variant")
+
     def probeFlash(self):
         """Look for attached flash."""
         # try:
