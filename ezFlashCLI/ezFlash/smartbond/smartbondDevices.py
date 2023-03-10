@@ -99,6 +99,12 @@ SMARTBOND_IDENTIFIER = {
 }
 
 
+DA14531_VARIANTS = {
+    "[7, 33, 1, 112]": "da14531_00",
+    "[32, 70, 254, 247]": "da14531_01",
+}
+
+
 SMARTBOND_PRETTY_IDENTIFIER = {
     "da1470x": "DA1470x",
     "da1469x": "DA1469x",
@@ -107,6 +113,8 @@ SMARTBOND_PRETTY_IDENTIFIER = {
     "da14585": "DA14585/DA14586",
     "da14580": "DA14580",
     "da14531": "DA14531",
+    "da14531_00": "DA14531-00",
+    "da14531_01": "DA14531-01",
 }
 
 
@@ -841,6 +849,22 @@ class da14585(da1453x_da1458x):
 
         # Set SPI Word length
         self.spi_set_bitmode(self.SPI_MODE_8BIT)
+
+
+class da14531_00(da14531):
+    """Derived class for the da14531-00 devices."""
+
+    def __init__(self):
+        """Initalizate the da14531 parent devices class."""
+        da14531.__init__(self)
+
+
+class da14531_01(da14531):
+    """Derived class for the da14531-00 devices."""
+
+    def __init__(self):
+        """Initalizate the da14531 parent devices class."""
+        da14531.__init__(self)
 
 
 class da1468x_da1469x_da1470x(da14xxx):
