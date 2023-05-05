@@ -787,6 +787,8 @@ class da14585(da1453x_da1458x):
     SPI_CTRL_REG1 = 0x50001208
     SPI_RX_TX_REG0 = 0x50001202
     SPI_CLEAR_INT = 0x50001206
+    PMU_CTRL_REG = 0x50000010
+    SYS_STAT_REG = 0x50000014
 
     def __init__(self, device=None):
         """Initalizate the da14xxxx parent devices class."""
@@ -839,6 +841,12 @@ class da14585(da1453x_da1458x):
         self.SetWord16(self.SET_FREEZE_REG, 0x8)  # stop watch dog
         self.SetBits16(self.SYS_CTRL_REG, 0x0180, 0x3)  # SWD_DIO = P0_10
 
+        # enable the peripheral power domain
+        self.SetBits16(self.PMU_CTRL_REG, 0x2, 0x0)
+
+        while (self.link.rd_mem(16, self.SYS_STAT_REG, 1)[0] & 0x8) == 0:
+            pass
+
         self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CS_PIN, 0x300, 8)  # SPI_CS
         self.GPIO_SetActive(self.SPI_PORT, self.SPI_CS_PIN)
         self.GPIO_SetPinFunction(self.SPI_PORT, self.SPI_CLK_PIN, 0x300, 7)  # SPI_CLK
@@ -849,6 +857,12 @@ class da14585(da1453x_da1458x):
 
         # Set SPI Word length
         self.spi_set_bitmode(self.SPI_MODE_8BIT)
+
+        # Clear pending flag
+        self.SetWord16(self.SPI_CLEAR_INT, 0x1)
+
+        # Set SPI mode on
+        self.SetBits16(self.SPI_CTRL_REG, 0x1, 0x1)
 
 
 class da14531_00(da14531):
