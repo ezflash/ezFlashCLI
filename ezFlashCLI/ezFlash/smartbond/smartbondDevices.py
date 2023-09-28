@@ -34,8 +34,6 @@ from ..pyjlink import pyjlink
 
 SPI_FLASH_PAGE_SIZE = 256
 SPI_FLASH_SECTOR_SIZE = 4096
-_69x_DEFAULT_IMAGE_ADDRESS = 0x2000
-_69x_DEFAULT_IMAGE_OFFSET = 0x400
 _69X_OTP_BASE_ADDR = 0x10080000
 _69X_OTP_CFG_SCRIPT_ADDR = _69X_OTP_BASE_ADDR + 0x0C00
 
@@ -1295,6 +1293,9 @@ class da1469x(da1468x_da1469x_da1470x):
     OTP_CFG_SCRIPT_ENTRY_SIZE = 4
     OTP_CFG_SCRIPT_ENTRY_CNT_MAX = 256
 
+    DEFAULT_IMAGE_ADDRESS = 0x2000
+    DEFAULT_IMAGE_OFFSET = 0x400
+
     def __init__(self, name=b"DA1469x"):
         """Initalizate the da14xxxx parent devices class."""
         da1468x_da1469x_da1470x.__init__(self, name)
@@ -1336,30 +1337,28 @@ class da1469x(da1468x_da1469x_da1470x):
 
     def scatterfile_product_header(
         self,
-        flash_burstcmda_reg_value,
-        flash_burstcmdb_reg_value,
-        flash_write_config_command,
+        flash,
         active_fw_image_address=0x2000,
         update_fw_image_address=0x2000,
     ):
         """Calculate product header based on inputs.
 
         Args:
-            flash_burstcmda_reg_value: 32 bits burst command
-            flash_burstcmdb_reg_value: 32 bits burst command
-            flash_write_config_command: flash configuration command
+            flash: dict of flash info
             active_fw_image_address: Active image address
             update_fw_image_address: Update image address
 
         Returns a text array that can be pasted in the linker script
 
         """
+        flash_burstcmda_reg_value = flash["flash_burstcmda_reg_value"]
+        flash_burstcmdb_reg_value = flash["flash_burstcmdb_reg_value"]
+        flash_write_config_command = flash["flash_write_config_command"]
+
         cmd_len = len(flash_write_config_command.split(" "))
 
         headerarray = self.make_product_header(
-            flash_burstcmda_reg_value,
-            flash_burstcmdb_reg_value,
-            flash_write_config_command,
+            flash,
             active_fw_image_address,
             update_fw_image_address,
         )
@@ -1456,18 +1455,14 @@ class da1469x(da1468x_da1469x_da1470x):
 
     def make_product_header(
         self,
-        flash_burstcmda_reg_value,
-        flash_burstcmdb_reg_value,
-        flash_write_config_command,
+        flash,
         active_fw_image_address=0x2000,
         update_fw_image_address=0x2000,
     ):
         """Calculate product header based on inputs.
 
         Args:
-            flash_burstcmda_reg_value: 32 bits burst command
-            flash_burstcmdb_reg_value: 32 bits burst command
-            flash_write_config_command: flash configuration command
+            flash: dict of flash info
             active_fw_image_address: Active image address
             update_fw_image_address: Update image address
 
@@ -1476,6 +1471,10 @@ class da1469x(da1468x_da1469x_da1470x):
         Figure 13
 
         """
+        flash_burstcmda_reg_value = flash["flash_burstcmda_reg_value"]
+        flash_burstcmdb_reg_value = flash["flash_burstcmdb_reg_value"]
+        flash_write_config_command = flash["flash_write_config_command"]
+
         configCommand = flash_write_config_command.split(" ")
         buff = b""
         buff += struct.pack(">2c", b"P", b"p")
@@ -1527,17 +1526,19 @@ class da1469x(da1468x_da1469x_da1470x):
             flashid: tuple extracted from the flash database
         """
         if fileData[:2] == b"Pp":
-            logging.info("[DA1469x] Program image")
+            logging.info("[" + self.link.Device.decode("utf-8") + "] Program image")
             self.flash_program_data(fileData, 0x0)
         else:
             if fileData[:2] != b"Qq":
-                logging.info("[DA1469x] Add image header")
+                logging.info(
+                    "[" + self.link.Device.decode("utf-8") + "] Add image header"
+                )
                 ih = self.make_image_header(fileData)
-                ih += b"\xFF" * (_69x_DEFAULT_IMAGE_OFFSET - len(ih))
+                ih += b"\xFF" * (self.DEFAULT_IMAGE_OFFSET - len(ih))
                 fileData = ih + fileData
 
-            logging.info("[DA1469x] Program bin")
-            active_fw_image_address = _69x_DEFAULT_IMAGE_ADDRESS
+            logging.info("[" + self.link.Device.decode("utf-8") + "] Program bin")
+            active_fw_image_address = self.DEFAULT_IMAGE_ADDRESS
             if parameters["active_fw_image_address"] is not None:
                 if not self.check_address(parameters["active_fw_image_address"]):
                     logging.error(
@@ -1547,24 +1548,30 @@ class da1469x(da1468x_da1469x_da1470x):
                 active_fw_image_address = parameters["active_fw_image_address"]
             update_fw_image_address = active_fw_image_address
             logging.debug(
-                "[DA1469x] active_fw_image_address " + str(active_fw_image_address)
+                "["
+                + self.link.Device.decode("utf-8")
+                + "] active_fw_image_address "
+                + str(active_fw_image_address)
             )
             logging.debug(
-                "[DA1469x] update_fw_image_address " + str(update_fw_image_address)
+                "["
+                + self.link.Device.decode("utf-8")
+                + "] update_fw_image_address "
+                + str(update_fw_image_address)
             )
             self.flash_program_data(fileData, active_fw_image_address)
 
-            logging.info("[DA1469x] Program product header")
+            logging.info(
+                "[" + self.link.Device.decode("utf-8") + "] Program product header"
+            )
             ph = self.make_product_header(
-                parameters["flashid"]["flash_burstcmda_reg_value"],
-                parameters["flashid"]["flash_burstcmdb_reg_value"],
-                parameters["flashid"]["flash_write_config_command"],
+                parameters["flashid"],
                 active_fw_image_address=active_fw_image_address,
                 update_fw_image_address=update_fw_image_address,
             )
             self.flash_program_data(ph, 0x0)
             self.flash_program_data(ph, 0x1000)
-        logging.info("[DA1469x] Program success")
+        logging.info("[" + self.link.Device.decode("utf-8") + "] Program success")
         return 1
 
     def otp_init(self):
@@ -1751,9 +1758,55 @@ class da1470x(da1469x):
     FLASH_READ_ARRAY_BASE = 0x38000000
     FLASH_ARRAY_BASE = 0x38000000
 
+    DEFAULT_IMAGE_ADDRESS = 0x3000
+    DEFAULT_IMAGE_OFFSET = 0x400
+
     def __init__(self):
         """Initalizate the da14xxxx parent devices class."""
         da1469x.__init__(self, b"DA1470x")
+
+    def make_product_header(
+        self,
+        flash,
+        active_fw_image_address=0x3000,
+        update_fw_image_address=0x3000,
+    ):
+        """Calculate product header based on inputs.
+
+        Args:
+            flash: dict of flash info
+            active_fw_image_address: Active image address
+            update_fw_image_address: Update image address
+
+        For more details about the product header, please refer the
+        `DA1469x datasheet <https://www.dialog-semiconductor.com/sites/default/files/2020-12/da1469x_datasheet_3v2.pdf>`_
+        Figure 13
+
+        """
+        flash_burstcmda_reg_value = flash["flash_burstcmda_reg_value"]
+        flash_burstcmdb_reg_value = flash["flash_burstcmdb_reg_value"]
+        flash_write_config_command = flash["flash_write_config_command"]
+        flash_ctrlmode_reg_value = flash["flash_ctrlmode_reg_value"]
+
+        configCommand = flash_write_config_command.split(" ")
+        buff = b""
+        buff += struct.pack(">2c", b"P", b"p")
+        buff += struct.pack(
+            "<2I", int(active_fw_image_address), int(update_fw_image_address)
+        )
+        buff += struct.pack(
+            "<3I",
+            int(flash_burstcmda_reg_value[2:], 16),
+            int(flash_burstcmdb_reg_value[2:], 16),
+            int(flash_ctrlmode_reg_value[2:], 16),
+        )
+        buff += struct.pack(">H", 0xAA11)
+        buff += struct.pack("H", len(configCommand))
+        for cmd in configCommand:
+            buff += struct.pack("<B", int(cmd, 16))
+        buff += struct.pack("<H", binascii.crc_hqx(buff, 0xFFFF))
+        buff += b"\xFF" * (self.PRODUCT_HEADER_SIZE - len(buff))
+        return buff
 
     def flash_hw_qspi_cs_enable(self):
         """Enable QSPI CS.

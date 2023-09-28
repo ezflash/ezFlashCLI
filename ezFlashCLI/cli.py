@@ -95,7 +95,7 @@ class ezFlashCLI:
                 self.display_jlink_devices()
 
                 logging.warning(
-                    "Selecting interfface {}".format(self.devicelist[0].SerialNumber)
+                    "Selecting interface {}".format(self.devicelist[0].SerialNumber)
                 )
                 self.args.jlink = self.devicelist[0].SerialNumber
 
