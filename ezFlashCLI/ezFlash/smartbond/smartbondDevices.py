@@ -92,6 +92,7 @@ SMARTBOND_IDENTIFIER = {
     "[51, 49, 48, 55]": "da1470x",
     "[54, 56, 48, 0, 65]": "da14681",
     "[54, 56, 48, 0, 66]": "da14683",
+    "[50, 54, 51, 52, 2]": "da14592",
     "[53, 56, 53, 1, 65]": "da14585",
     "[53, 56, 53, 0, 65]": "da14585",
     "[53, 56, 48, 1, 65]": "da14580",
@@ -108,6 +109,7 @@ DA14531_VARIANTS = {
 SMARTBOND_PRETTY_IDENTIFIER = {
     "da1470x": "DA1470x",
     "da1469x": "DA1469x",
+    "da14592": "DA14592",
     "da14681": "DA14680/DA14681",
     "da14683": "DA14682/DA14683",
     "da14585": "DA14585/DA14586",
@@ -1783,6 +1785,58 @@ class da1470x(da1469x):
         else:
             self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BE)
         return True
+    
+class da14592(da1469x):
+    """Derived class for the da1470x devices."""
+
+    QPSPIC_BASE = 0xA00000
+    FLASH_READ_ARRAY_BASE = 0xA00000
+    FLASH_ARRAY_BASE = 0x38000000
+
+    def __init__(self):
+        """Initalizate the da14xxxx parent devices class."""
+        da1469x.__init__(self, b"DA1470x")
+        
+    def flash_probe(self):
+        return(1,2,3)
+    
+    def flash_hw_qspi_cs_enable(self):
+        """Enable QSPI CS.
+
+        Args:
+            None
+        """
+        return
+
+    def flash_hw_qspi_cs_disable(self):
+        """Disable QSPI CS.
+
+        Args:
+            None
+        """
+        return
+
+    def flash_set_automode(self, mode):
+        """Set the device in automode.
+
+        Args:
+            mode: boolean
+        """
+        # ctrlmode = self.link.rd_mem(32, self.QSPIC_CTRLMODE_REG, 1)[0]
+        # if mode:
+        #     self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BF)
+        # else:
+        #     self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BE)
+        return True
+    
+    def flash_configure_controller(self, flashid):
+        """Set the controller in Continuous mode according flash configuration parameters.
+
+        Notes:
+            Requires the flash device to be successfully probed
+
+        """
+        return
 
 
 class da1468x(da1468x_da1469x_da1470x):
