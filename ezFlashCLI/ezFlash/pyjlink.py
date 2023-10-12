@@ -207,6 +207,8 @@ class pyjlink(object):
             elif platform.system() in "Linux":
                 if platform.machine().startswith("arm"):
                     dll = "libjlinkarm_arm.so.6.82.2"
+                elif platform.machine() == "aarch64":
+                    dll = "libjlinkarm.so.7.92.9"
                 else:
                     if platform.architecture()[0] == "64bit":
                         dll = "libjlinkarm.so.6.82.2"
