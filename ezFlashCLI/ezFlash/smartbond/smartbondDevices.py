@@ -1792,6 +1792,13 @@ class da14592(da1469x):
     QPSPIC_BASE = 0xA00000
     FLASH_READ_ARRAY_BASE = 0xA00000
     FLASH_ARRAY_BASE = 0x38000000
+    FLASH_CTRL_REG = 0x50060100
+    HW_FCU_FLASH_PROG_MODE_READ = 0x0
+    HW_FCU_FLASH_PROG_MODE_WRITE_PAGE = 0x1
+    HW_FCU_FLASH_PROG_MODE_ERASE_PAGE = 0x2
+    HW_FCU_FLASH_PROG_MODE_ERASE_BLOCK = 0x3
+    HW_FCU_FLASH_ACCESS_MODE_READ= 0x0
+    HW_FCU_FLASH_ACCESS_MODE_WRITE_ERASE = 0x8
 
     def __init__(self):
         """Initalizate the da14xxxx parent devices class."""
@@ -1827,6 +1834,20 @@ class da14592(da1469x):
         #     self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BF)
         # else:
         #     self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BE)
+        return True
+
+    def flash_erase(self):
+        """Erase the flash content.
+
+        Args:
+            None
+        """
+        self.link.reset()
+        flash_ctrl = self.link.rd_mem(32, self.FLASH_CTRL_REG, 1)[0] & 0xFFFFFFF4
+        self.link.wr_mem(32, self.FLASH_CTRL_REG, flash_ctrl | self.HW_FCU_FLASH_PROG_MODE_ERASE_BLOCK | self.HW_FCU_FLASH_ACCESS_MODE_WRITE_ERASE)
+        self.link.wr_mem(32, self.QPSPIC_BASE, 0)
+        self.link.wr_mem(32, self.FLASH_CTRL_REG, flash_ctrl)
+
         return True
     
     def flash_configure_controller(self, flashid):
