@@ -1791,7 +1791,7 @@ class da14592(da1469x):
 
     QPSPIC_BASE = 0xA00000
     FLASH_READ_ARRAY_BASE = 0xA00000
-    FLASH_ARRAY_BASE = 0x38000000
+    FLASH_ARRAY_BASE = 0x31000000
     FLASH_CTRL_REG = 0x50060100
     HW_FCU_FLASH_PROG_MODE_READ = 0x0
     HW_FCU_FLASH_PROG_MODE_WRITE_PAGE = 0x1
@@ -1802,7 +1802,7 @@ class da14592(da1469x):
 
     def __init__(self):
         """Initalizate the da14xxxx parent devices class."""
-        da1469x.__init__(self, b"DA1470x")
+        da1469x.__init__(self, b"DA14592")
         
     def flash_probe(self):
         return(1,2,3)
