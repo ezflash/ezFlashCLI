@@ -1490,9 +1490,12 @@ class da1469x(da1468x_da1469x_da1470x):
             int(flash_burstcmdb_reg_value[2:], 16),
         )
         buff += struct.pack(">H", 0xAA11)
-        buff += struct.pack("H", len(configCommand))
-        for cmd in configCommand:
-            buff += struct.pack("<B", int(cmd, 16))
+        if configCommand[0] != "":
+            buff += struct.pack("H", len(configCommand))
+            for cmd in configCommand:
+                buff += struct.pack("<B", int(cmd, 16))
+        else:
+            buff += struct.pack("<H", 0x00)
         buff += struct.pack("<H", binascii.crc_hqx(buff, 0xFFFF))
         buff += b"\xFF" * (self.PRODUCT_HEADER_SIZE - len(buff))
         return buff
@@ -1790,9 +1793,12 @@ class da14592(da1469x):
     """Derived class for the da1470x devices."""
 
     QPSPIC_BASE = 0xA00000
+    PRODUCT_HEADER_SIZE=0x500
     FLASH_READ_ARRAY_BASE = 0xA00000
     FLASH_ARRAY_BASE = 0x31000000
     FLASH_CTRL_REG = 0x50060100
+    CACHE_EFLASH_REG = 0x1A0C0044
+    CACHE_EFLASH_REG_val = 0x00A09005
     HW_FCU_FLASH_PROG_MODE_READ = 0x0
     HW_FCU_FLASH_PROG_MODE_WRITE_PAGE = 0x1
     HW_FCU_FLASH_PROG_MODE_ERASE_PAGE = 0x2
@@ -1858,6 +1864,92 @@ class da14592(da1469x):
 
         """
         return
+    
+    def make_config_script(
+        self,
+        prod_header_addr=0x1000,
+    ):
+        """Calculate product header based on inputs.
+
+        Args:
+            flash_burstcmda_reg_value: 32 bits burst command
+            flash_burstcmdb_reg_value: 32 bits burst command
+            flash_write_config_command: flash configuration command
+            active_fw_image_address: Active image address
+            update_fw_image_address: Update image address
+
+        For more details about the product header, please refer the
+        `DA1469x datasheet <https://www.dialog-semiconductor.com/sites/default/files/2020-12/da1469x_datasheet_3v2.pdf>`_
+        Figure 13
+
+        """
+        buff = b""
+        buff += struct.pack("I", 0xA5A5A5A5)
+        buff += struct.pack(
+            "<I", int(0x60000000 | prod_header_addr)
+        )
+        buff += struct.pack("<I", self.CACHE_EFLASH_REG)
+        buff += struct.pack("<I", self.CACHE_EFLASH_REG_val)
+        return buff
+    
+    def flash_program_image(self, fileData, parameters):
+        """Program and image in the flash.
+
+        Args:
+            fileData: Byte array
+            flashid: tuple extracted from the flash database
+        """
+        _592_DEFAULT_IMAGE_ADDRESS = 0x2000
+        _592_DEFAULT_IMAGE_OFFSET = 0x400
+        if fileData[:4] == b'\xA5\xA5\xA5\xA5':
+            logging.info("[DA14592] Program image")
+            self.flash_program_data(fileData, 0x0)
+        else:
+            if fileData[:2] != b"Qq":
+                logging.info("[DA14592] Add image header")
+                ih = self.make_image_header(fileData)
+                ih += b"\xFF" * (_592_DEFAULT_IMAGE_OFFSET - len(ih))
+                fileData = ih + fileData
+
+            active_fw_image_address = _592_DEFAULT_IMAGE_ADDRESS
+            if parameters["active_fw_image_address"] is not None:
+                if not self.check_address(parameters["active_fw_image_address"]):
+                    logging.error(
+                        "active_fw_image_address out of range, it should be bigger than 0x2000 and the Firmware partition needs to start at an address which is a CACHE_FLASH_REG[FLASH_REGION_SIZE] multiple plus an offset of zero to three sectors"
+                    )
+                    return 0
+                active_fw_image_address = parameters["active_fw_image_address"]
+            update_fw_image_address = active_fw_image_address
+            logging.info("[DA14592] Program bin to 0x%X", active_fw_image_address)
+            logging.debug(
+                "[DA14592] active_fw_image_address " + str(active_fw_image_address)
+            )
+            logging.debug(
+                "[DA14592] update_fw_image_address " + str(update_fw_image_address)
+            )
+            self.flash_program_data(fileData, active_fw_image_address)
+
+            ph = self.make_product_header(
+                parameters["flashid"]["flash_burstcmda_reg_value"],
+                parameters["flashid"]["flash_burstcmdb_reg_value"],
+                parameters["flashid"]["flash_write_config_command"],
+                active_fw_image_address=active_fw_image_address,
+                update_fw_image_address=update_fw_image_address,
+            )            
+            cs = self.make_config_script()
+            print(hex(len(cs)))
+            cs += b"\xFF" * (0x1000 - len(cs))
+            print(hex(len(cs)))
+            cs += ph
+            print(hex(len(cs)))
+            cs += b"\xFF" * (0x1800 - len(cs))
+            print(hex(len(cs)))
+            cs += ph
+            print(hex(len(cs)))
+            logging.info("[DA14592] Program cs script and product headers")
+            self.flash_program_data(cs, 0x0)
+        logging.info("[DA14592] Program success")
+        return 1
 
 
 class da1468x(da1468x_da1469x_da1470x):
