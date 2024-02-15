@@ -1788,12 +1788,13 @@ class da1470x(da1469x):
         else:
             self.link.wr_mem(32, self.QSPIC_CTRLMODE_REG, 0xF80000BE)
         return True
-    
+
+
 class da14592(da1469x):
     """Derived class for the da1470x devices."""
 
     QPSPIC_BASE = 0xA00000
-    PRODUCT_HEADER_SIZE=0x500
+    PRODUCT_HEADER_SIZE = 0x500
     FLASH_READ_ARRAY_BASE = 0xA00000
     FLASH_ARRAY_BASE = 0x31000000
     FLASH_CTRL_REG = 0x50060100
@@ -1803,16 +1804,17 @@ class da14592(da1469x):
     HW_FCU_FLASH_PROG_MODE_WRITE_PAGE = 0x1
     HW_FCU_FLASH_PROG_MODE_ERASE_PAGE = 0x2
     HW_FCU_FLASH_PROG_MODE_ERASE_BLOCK = 0x3
-    HW_FCU_FLASH_ACCESS_MODE_READ= 0x0
+    HW_FCU_FLASH_ACCESS_MODE_READ = 0x0
     HW_FCU_FLASH_ACCESS_MODE_WRITE_ERASE = 0x8
 
     def __init__(self):
         """Initalizate the da14xxxx parent devices class."""
         da1469x.__init__(self, b"DA14592")
-        
+
     def flash_probe(self):
-        return(1,2,3)
-    
+        """Return dummy value for DA14592."""
+        return (1, 2, 3)
+
     def flash_hw_qspi_cs_enable(self):
         """Enable QSPI CS.
 
@@ -1850,12 +1852,18 @@ class da14592(da1469x):
         """
         self.link.reset()
         flash_ctrl = self.link.rd_mem(32, self.FLASH_CTRL_REG, 1)[0] & 0xFFFFFFF4
-        self.link.wr_mem(32, self.FLASH_CTRL_REG, flash_ctrl | self.HW_FCU_FLASH_PROG_MODE_ERASE_BLOCK | self.HW_FCU_FLASH_ACCESS_MODE_WRITE_ERASE)
+        self.link.wr_mem(
+            32,
+            self.FLASH_CTRL_REG,
+            flash_ctrl
+            | self.HW_FCU_FLASH_PROG_MODE_ERASE_BLOCK
+            | self.HW_FCU_FLASH_ACCESS_MODE_WRITE_ERASE,
+        )
         self.link.wr_mem(32, self.QPSPIC_BASE, 0)
         self.link.wr_mem(32, self.FLASH_CTRL_REG, flash_ctrl)
 
         return True
-    
+
     def flash_configure_controller(self, flashid):
         """Set the controller in Continuous mode according flash configuration parameters.
 
@@ -1864,7 +1872,7 @@ class da14592(da1469x):
 
         """
         return
-    
+
     def make_config_script(
         self,
         prod_header_addr=0x1000,
@@ -1885,13 +1893,11 @@ class da14592(da1469x):
         """
         buff = b""
         buff += struct.pack("I", 0xA5A5A5A5)
-        buff += struct.pack(
-            "<I", int(0x60000000 | prod_header_addr)
-        )
+        buff += struct.pack("<I", int(0x60000000 | prod_header_addr))
         buff += struct.pack("<I", self.CACHE_EFLASH_REG)
         buff += struct.pack("<I", self.CACHE_EFLASH_REG_val)
         return buff
-    
+
     def flash_program_image(self, fileData, parameters):
         """Program and image in the flash.
 
@@ -1901,7 +1907,7 @@ class da14592(da1469x):
         """
         _592_DEFAULT_IMAGE_ADDRESS = 0x2000
         _592_DEFAULT_IMAGE_OFFSET = 0x400
-        if fileData[:4] == b'\xA5\xA5\xA5\xA5':
+        if fileData[:4] == b"\xA5\xA5\xA5\xA5":
             logging.info("[DA14592] Program image")
             self.flash_program_data(fileData, 0x0)
         else:
@@ -1935,7 +1941,7 @@ class da14592(da1469x):
                 parameters["flashid"]["flash_write_config_command"],
                 active_fw_image_address=active_fw_image_address,
                 update_fw_image_address=update_fw_image_address,
-            )            
+            )
             cs = self.make_config_script()
             print(hex(len(cs)))
             cs += b"\xFF" * (0x1000 - len(cs))
