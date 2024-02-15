@@ -75,6 +75,22 @@ class ezFlashCLI:
 
             if self.rawdevicelist is None:
                 logging.error("No JLink device found")
+                import platform
+
+                if platform.system() in "Linux" and not os.path.exists(
+                    "/etc/udev/rules.d/99-jlink.rules"
+                ):
+                    rulefile = os.path.join(
+                        os.path.dirname(__file__),
+                        "third-party",
+                        "segger",
+                        "99-jlink.rules",
+                    )
+                    logging.info(
+                        "This may be caused by missing udev rules, run this command to add them: sudo cp {} /etc/udev/rules.d/".format(
+                            rulefile
+                        )
+                    )
                 sys.exit(1)
 
             self.devicelist = []
@@ -95,7 +111,7 @@ class ezFlashCLI:
                 self.display_jlink_devices()
 
                 logging.warning(
-                    "Selecting interfface {}".format(self.devicelist[0].SerialNumber)
+                    "Selecting interface {}".format(self.devicelist[0].SerialNumber)
                 )
                 self.args.jlink = self.devicelist[0].SerialNumber
 
