@@ -316,7 +316,10 @@ class pyjlink(object):
             self.logger.debug("Read 58x/68x identifier")
             id = self.rd_mem(8, 0x50003200, 5)
             pass
-
+        if id == [0, 0, 0, 0]:
+            self.logger.debug("Failed to read 58x/68x identifier")
+            self.logger.debug("Read 59x identifier")
+            id = self.rd_mem(32, 0x50050200, 5)
         c_acIn = ctypes.c_char_p(b"DisableInfoWinFlashDL")
         acOut = b" " * 80
         c_acOut = ctypes.c_char_p(acOut)

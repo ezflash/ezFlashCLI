@@ -1,6 +1,15 @@
 {
     "date": "1566474590175",
     "flash_configurations": [{
+            "name": "DA14592_eflash",
+            "flash_manufacturer": "1",
+            "flash_device_type": "2",
+            "flash_density": "3",
+            "flash_size": "0x40000",
+            "flash_burstcmda_reg_value": "0xFFFFFFFF",
+            "flash_burstcmdb_reg_value": "0xFFFFFFFF",
+            "flash_write_config_command": ""
+        },{
             "name": "AT25FF081A",
             "flash_manufacturer": "1F",
             "flash_device_type": "45",
@@ -115,6 +124,7 @@
             "flash_write_config_command": "0x01 0x40 0x07"
         },
         {
+            
             "name": "MX25U6432",
             "flash_manufacturer": "C2",
             "flash_device_type": "25",
