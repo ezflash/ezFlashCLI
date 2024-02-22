@@ -24,7 +24,10 @@ Known flash devices:
 
 * MX25R2035F
 
-### DA1468X and DA1469X
+### DA1459x, DA1468X and DA1469X
+
+* DA1459x:
+  * DA14592
 
 * DA1468x:
   * DA14680
