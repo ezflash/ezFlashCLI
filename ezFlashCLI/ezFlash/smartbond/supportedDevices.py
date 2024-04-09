@@ -41,6 +41,7 @@ devices = [
     smartbond_device("da1469x", "DA1469x", "[51, 48, 56, 48]", 0x50040200, 4, 32),
     smartbond_device("da1470x", "DA1470x", "[50, 55, 57, 56]", 0x50040000, 4, 32),
     smartbond_device("da1470x", "DA1470x", "[51, 49, 48, 55]", 0x50040000, 4, 32),
+    smartbond_device("da14531", "DA14535", "[51, 0, 51, 0, 48]", 0x50003200, 5, 8),
     smartbond_device(
         "da14531_00",
         "DA14531-00",
