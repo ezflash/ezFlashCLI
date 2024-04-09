@@ -27,6 +27,7 @@ import logging
 import os
 import sys
 from enum import IntEnum
+from ezFlashCLI.ezFlash.smartbond.supportedDevices import devices
 
 
 class JLINKARM_HOSTIF(IntEnum):
@@ -304,22 +305,14 @@ class pyjlink(object):
             raise pyJLinkException("Unspecified error")
         elif r < 0:
             raise pyJLinkException(JLINKARM_ERROR_CODES(r).name)
-
-        try:
-            self.logger.debug("Read 70x identifier")
-            id = self.rd_mem(32, 0x50040000, 4)
-            if id[0] < 0x30 or id[0] > 0xFF:
-                self.logger.debug("Read 69x identifier")
-                id = self.rd_mem(32, 0x50040200, 4)
-        except Exception:
-            self.logger.debug("Failed to read 69x identifier")
-            self.logger.debug("Read 58x/68x identifier")
-            id = self.rd_mem(8, 0x50003200, 5)
-            pass
-        if id == [0, 0, 0, 0]:
-            self.logger.debug("Failed to read 58x/68x identifier")
-            self.logger.debug("Read 59x identifier")
-            id = self.rd_mem(32, 0x50050200, 5)
+        for device in devices:
+            try:
+                self.logger.debug("Read " + device.pretty_identifier + " identifier")
+                id = self.rd_mem(device.access_size, device.id_register, device.id_size)
+                if str(id) == device.id:
+                    break
+            except:
+                pass
         c_acIn = ctypes.c_char_p(b"DisableInfoWinFlashDL")
         acOut = b" " * 80
         c_acOut = ctypes.c_char_p(acOut)
