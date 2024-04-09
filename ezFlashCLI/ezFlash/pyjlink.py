@@ -310,6 +310,12 @@ class pyjlink(object):
                 self.logger.debug("Read " + device.pretty_identifier + " identifier")
                 id = self.rd_mem(device.access_size, device.id_register, device.id_size)
                 if str(id) == device.id:
+                    "Extra info deals with the 531_01 rom spin"
+                    if len(device.extra_info) > 0:
+                        extra = self.rd_mem(device.extra_info[3], device.extra_info[1], device.extra_info[2])
+                        if str(extra) != device.extra_info[0]:
+                            continue
+                    found_device = device
                     break
             except:
                 pass
@@ -319,7 +325,7 @@ class pyjlink(object):
         c_buffersize = ctypes.c_int(80)
         self.jl.JLINKARM_ExecCommand(c_acIn, c_acOut, c_buffersize)
 
-        return str(id)
+        return found_device
 
     def close(self):
         """Close the connection to the target system."""

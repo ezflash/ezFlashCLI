@@ -81,43 +81,6 @@ class HW_QSPI_COMMON_CMD(IntEnum):
     ENTER_QPI_MODE = (0x38,)  # Requires single mode for the command entry!
     EXIT_QPI_MODE = 0xFF  # Requires quad mode for the command entry!
 
-
-SMARTBOND_IDENTIFIER = {
-    "[50, 53, 50, 50]": "da1469x",
-    "[50, 55, 54, 51]": "da1469x",
-    "[51, 48, 56, 48]": "da1469x",
-    "[50, 55, 57, 56]": "da1470x",
-    "[51, 49, 48, 55]": "da1470x",
-    "[54, 56, 48, 0, 65]": "da14681",
-    "[54, 56, 48, 0, 66]": "da14683",
-    "[50, 54, 51, 52, 2]": "da14592",
-    "[53, 56, 53, 1, 65]": "da14585",
-    "[53, 56, 53, 0, 65]": "da14585",
-    "[53, 56, 48, 1, 65]": "da14580",
-    "[50, 0, 50, 0, 54]": "da14531",
-}
-
-
-DA14531_VARIANTS = {
-    "[7, 33, 1, 112]": "da14531_00",
-    "[32, 70, 254, 247]": "da14531_01",
-}
-
-
-SMARTBOND_PRETTY_IDENTIFIER = {
-    "da1470x": "DA1470x",
-    "da1469x": "DA1469x",
-    "da14592": "DA14592",
-    "da14681": "DA14680/DA14681",
-    "da14683": "DA14682/DA14683",
-    "da14585": "DA14585/DA14586",
-    "da14580": "DA14580",
-    "da14531": "DA14531",
-    "da14531_00": "DA14531-00",
-    "da14531_01": "DA14531-01",
-}
-
-
 class da14xxx:
     """Handler for the Smartbond devices Flash memory."""
 
@@ -137,7 +100,7 @@ class da14xxx:
 
     def connect(self, id):
         """Connect through jlink."""
-        id = self.link.connect(id)
+        id = self.link.connect(id).identifier
 
         if not len(id):
             raise Exception("Device not found")

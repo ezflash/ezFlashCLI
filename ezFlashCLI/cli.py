@@ -31,6 +31,7 @@ import sys
 import ezFlashCLI.ezFlash.smartbond.smartbondDevices as sbdev
 from ezFlashCLI import __version__
 from ezFlashCLI.ezFlash.pyjlink import pyjlink
+from ezFlashCLI.ezFlash.smartbond.supportedDevices import devices
 
 
 class ezFlashCLI:
@@ -124,7 +125,7 @@ class ezFlashCLI:
 
             logging.info(
                 "Smartbond chip: {}".format(
-                    sbdev.SMARTBOND_PRETTY_IDENTIFIER[self.deviceType]
+                    self.deviceType.pretty_identifier
                 )
             )
 
@@ -143,7 +144,7 @@ class ezFlashCLI:
             self.probeDevice()
             logging.info(
                 "Smartbond chip: {}".format(
-                    sbdev.SMARTBOND_PRETTY_IDENTIFIER[self.deviceType]
+                    self.deviceType.pretty_identifier
                 )
             )
             self.go()
@@ -208,7 +209,7 @@ class ezFlashCLI:
                 logging.info("Flash chip not found")
                 sys.exit(1)
 
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             if self.da.flash_program_data(data, self.args.addr):
                 logging.info("Flash write success")
@@ -232,7 +233,7 @@ class ezFlashCLI:
                 logging.info("Flash chip not found")
                 sys.exit(1)
 
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             fileData = fp.read()
             logging.info("Program file size {}".format(len(fileData)))
@@ -262,7 +263,7 @@ class ezFlashCLI:
                 sys.exit(1)
             parameters["flashid"] = self.flashid
 
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             fileData = fp.read()
             fp.close()
@@ -289,7 +290,7 @@ class ezFlashCLI:
                 sys.exit(1)
             parameters["flashid"] = self.flashid
 
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             parameters["fileData"] = fp.read()
             fp.close()
@@ -307,7 +308,7 @@ class ezFlashCLI:
             """
             self.probeDevice()
             self.probeFlash()
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
 
             logging.info(
                 self.da.scatterfile_product_header(
@@ -331,7 +332,7 @@ class ezFlashCLI:
 
             self.probeDevice()
             self.probeFlash()
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
 
             productHeaderCalculated = self.calculateProductHeader()
 
@@ -347,7 +348,7 @@ class ezFlashCLI:
         elif self.args.operation == "read_otp":
             self.probeDevice()
             self.probeFlash()
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             count, offset = self.da.otp_read(self.args.key)
             if offset < 0:
@@ -356,7 +357,7 @@ class ezFlashCLI:
         elif self.args.operation == "write_otp":
             self.probeDevice()
             self.probeFlash()
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             result = self.da.otp_write(self.args.key, self.args.values, self.args.force)
             if result < 0:
@@ -365,7 +366,7 @@ class ezFlashCLI:
         elif self.args.operation == "otp_blank_check":
             self.probeDevice()
             self.probeFlash()
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             if self.da.otp_blank_check() is True:
                 logging.info("OTP is blank")
@@ -377,7 +378,7 @@ class ezFlashCLI:
         elif self.args.operation == "read_otp_hex":
             self.probeDevice()
             self.probeFlash()
-            self.importAndAssignDevice(self.deviceType)
+            self.importAndAssignDevice(self.deviceType.identifier)
             self.da.connect(self.args.jlink)
             data = self.da.otp_read_raw(self.args.addr, self.args.length)
             current_address = self.args.addr
@@ -392,7 +393,7 @@ class ezFlashCLI:
             with open(self.args.file, "wb") as fp:
                 self.probeDevice()
                 self.probeFlash()
-                self.importAndAssignDevice(self.deviceType)
+                self.importAndAssignDevice(self.deviceType.identifier)
                 self.da.connect(self.args.jlink)
                 data = self.da.otp_read_raw(self.args.addr, self.args.length)
                 for datum in data:
@@ -422,30 +423,17 @@ class ezFlashCLI:
     def probeDevice(self):
         """Look for attached smarbond device."""
         try:
-            self.deviceType = sbdev.SMARTBOND_IDENTIFIER[
-                self.link.connect(self.args.jlink)
-            ]
+            self.deviceType = self.link.connect(self.args.jlink)
             self.link.close()
 
         except Exception as inst:
             logging.error("Device not responding: {}".format(inst))
             sys.exit(1)
-
-        if self.deviceType == "da14531":
-            """Try to differentiate between DA14531-00 and DA14531-01"""
-            self.link.connect(self.args.jlink)
-            rom = self.link.rd_mem(8, 0x07F04000, 4)
-            self.link.close()
-            try:
-                self.deviceType = sbdev.DA14531_VARIANTS[str(rom)]
-
-            except Exception:
-                logging.warning("Unknown DA14531 variant")
-
+    
     def probeFlash(self):
         """Look for attached flash."""
         # try:
-        self.importAndAssignDevice(self.deviceType)
+        self.importAndAssignDevice(str(self.deviceType.identifier))
         self.da.connect(self.args.jlink)
         dev = self.da.flash_probe()
         self.flashid = self.da.get_flash(dev, self.flash_db)
