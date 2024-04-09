@@ -81,6 +81,7 @@ class HW_QSPI_COMMON_CMD(IntEnum):
     ENTER_QPI_MODE = (0x38,)  # Requires single mode for the command entry!
     EXIT_QPI_MODE = 0xFF  # Requires quad mode for the command entry!
 
+
 class da14xxx:
     """Handler for the Smartbond devices Flash memory."""
 

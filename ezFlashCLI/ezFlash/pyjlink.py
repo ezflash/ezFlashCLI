@@ -27,6 +27,7 @@ import logging
 import os
 import sys
 from enum import IntEnum
+
 from ezFlashCLI.ezFlash.smartbond.supportedDevices import devices
 
 
@@ -312,13 +313,18 @@ class pyjlink(object):
                 if str(id) == device.id:
                     "Extra info deals with the 531_01 rom spin"
                     if len(device.extra_info) > 0:
-                        extra = self.rd_mem(device.extra_info[3], device.extra_info[1], device.extra_info[2])
+                        extra = self.rd_mem(
+                            device.extra_info[3],
+                            device.extra_info[1],
+                            device.extra_info[2],
+                        )
                         if str(extra) != device.extra_info[0]:
                             continue
                     found_device = device
                     break
-            except:
-                pass
+            except Exception as ex:
+                self.logger.debug("Error loading J-Link Library: {}".format(ex))
+                continue
         c_acIn = ctypes.c_char_p(b"DisableInfoWinFlashDL")
         acOut = b" " * 80
         c_acOut = ctypes.c_char_p(acOut)

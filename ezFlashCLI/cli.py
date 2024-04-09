@@ -31,7 +31,6 @@ import sys
 import ezFlashCLI.ezFlash.smartbond.smartbondDevices as sbdev
 from ezFlashCLI import __version__
 from ezFlashCLI.ezFlash.pyjlink import pyjlink
-from ezFlashCLI.ezFlash.smartbond.supportedDevices import devices
 
 
 class ezFlashCLI:
@@ -123,11 +122,7 @@ class ezFlashCLI:
         elif self.args.operation == "probe":
             self.probeDevice()
 
-            logging.info(
-                "Smartbond chip: {}".format(
-                    self.deviceType.pretty_identifier
-                )
-            )
+            logging.info("Smartbond chip: {}".format(self.deviceType.pretty_identifier))
 
             self.probeFlash()
             logging.info("Flash information:")
@@ -142,11 +137,7 @@ class ezFlashCLI:
 
         elif self.args.operation == "go":
             self.probeDevice()
-            logging.info(
-                "Smartbond chip: {}".format(
-                    self.deviceType.pretty_identifier
-                )
-            )
+            logging.info("Smartbond chip: {}".format(self.deviceType.pretty_identifier))
             self.go()
 
         elif self.args.operation == "erase_flash":
@@ -412,6 +403,7 @@ class ezFlashCLI:
         Args:
             device: device name (string)
         """
+        assert sbdev  # appease Flake8
         self.da = eval("sbdev.{}".format(device))()
 
     def go(self):
@@ -429,7 +421,7 @@ class ezFlashCLI:
         except Exception as inst:
             logging.error("Device not responding: {}".format(inst))
             sys.exit(1)
-    
+
     def probeFlash(self):
         """Look for attached flash."""
         # try:
