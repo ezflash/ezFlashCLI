@@ -71,53 +71,58 @@ class ezFlashCLI:
         if not self.args.port:
             self.link = pyjlink()
             self.link.init()
-            self.rawdevicelist = self.link.browse()
+            if self.args.host:
+                self.link.iphost = self.args.host
+            else:
+                self.rawdevicelist = self.link.browse()
+                if self.rawdevicelist is None:
+                    logging.error("No JLink device found")
+                    import platform
 
-            if self.rawdevicelist is None:
-                logging.error("No JLink device found")
-                import platform
-
-                if platform.system() in "Linux" and not os.path.exists(
-                    "/etc/udev/rules.d/99-jlink.rules"
-                ):
-                    rulefile = os.path.join(
-                        os.path.dirname(__file__),
-                        "third-party",
-                        "segger",
-                        "99-jlink.rules",
-                    )
-                    logging.info(
-                        "This may be caused by missing udev rules, run this command to add them: sudo cp {} /etc/udev/rules.d/".format(
-                            rulefile
+                    if platform.system() in "Linux" and not os.path.exists(
+                        "/etc/udev/rules.d/99-jlink.rules"
+                    ):
+                        rulefile = os.path.join(
+                            os.path.dirname(__file__),
+                            "third-party",
+                            "segger",
+                            "99-jlink.rules",
                         )
+                        logging.info(
+                            "This may be caused by missing udev rules, run this command to add them: sudo cp {} /etc/udev/rules.d/".format(
+                                rulefile
+                            )
+                        )
+                        sys.exit(1)
+
+                self.devicelist = []
+                for device in self.rawdevicelist:
+                    if device.SerialNumber != 0:
+                        self.devicelist.append(device)
+
+                self.devicelist.sort()
+                if (
+                    len(self.devicelist) > 1
+                    and not self.args.jlink
+                    and self.args.operation != "list"
+                ):
+                    logging.warning("JLink interface must be selected using -j option")
+                    logging.warning(
+                        "Multiple interfaces detected, the lowest serial number is selected"
                     )
-                sys.exit(1)
+                    self.display_jlink_devices()
 
-            self.devicelist = []
-            for device in self.rawdevicelist:
-                if device.SerialNumber != 0:
-                    self.devicelist.append(device)
-
-            self.devicelist.sort()
-            if (
-                len(self.devicelist) > 1
-                and not self.args.jlink
-                and self.args.operation != "list"
-            ):
-                logging.warning("JLink interface must be selected using -j option")
-                logging.warning(
-                    "Multiple interfaces detected, the lowest serial number is selected"
-                )
-                self.display_jlink_devices()
-
-                logging.warning(
-                    "Selecting interface {}".format(self.devicelist[0].SerialNumber)
-                )
-                self.args.jlink = self.devicelist[0].SerialNumber
+                    logging.warning(
+                        "Selecting interface {}".format(self.devicelist[0].SerialNumber)
+                    )
+                    self.args.jlink = self.devicelist[0].SerialNumber
 
         # list the jlink interfaces
         if self.args.operation == "list":
-            self.display_jlink_devices()
+            if self.link.iphost is None:
+                self.display_jlink_devices()
+            else:
+                logging.info("Do not use command list with --host option")
 
         elif self.args.operation == "probe":
             self.probeDevice()
@@ -405,6 +410,8 @@ class ezFlashCLI:
         """
         assert sbdev  # appease Flake8
         self.da = eval("sbdev.{}".format(device))()
+        if self.link.iphost:
+            self.da.link.iphost = self.link.iphost
 
     def go(self):
         """Reset the device and run."""
@@ -486,6 +493,12 @@ class ezFlashCLI:
             "--jlink",
             help="JLink device identifier",
             default=os.environ.get("SMARTBOND_JLINK_ID", None),
+        )
+
+        self.parser.add_argument(
+            "--host",
+            help="Jlink device TCP/IP host",
+            default=os.environ.get("SMARTBOND_JLINK_HOST", None),
         )
 
         self.parser.add_argument(

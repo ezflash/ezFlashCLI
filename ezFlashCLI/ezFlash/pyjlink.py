@@ -253,25 +253,31 @@ class pyjlink(object):
 
     def connect(self, serialno):
         """Initialize the connection to the target system."""
-        if type(serialno) != type(int):
-            try:
-                serialno = int(serialno)
-            except Exception as ex:
-                self.logger.debug(
-                    "Failed to interpret JLink id: {}, will use default interface\nErr: {}".format(
-                        serialno, ex
+        if self.iphost is not None:
+            addr, port = self.iphost.rsplit(":", 1)
+            self.jl.JLINKARM_SelectIP(addr.encode(), int(port))
+        else:
+            if type(serialno) != type(int):
+                try:
+                    serialno = int(serialno)
+                except Exception as ex:
+                    self.logger.debug(
+                        "Failed to interpret JLink id: {}, will use default interface\nErr: {}".format(
+                            serialno, ex
+                        )
                     )
-                )
-                # return
+                    # return
 
-        if serialno:
-            self.logger.debug(
-                "Selecting J-Link with the serial number: " + str(serialno)
-            )
-            c_serialno = ctypes.c_uint32(serialno)
-            r = self.jl.JLINKARM_EMU_SelectByUSBSN(c_serialno)
-            if r < 0:
-                raise pyJLinkException("Error: Specific serial number not found on USB")
+            if serialno:
+                self.logger.debug(
+                    "Selecting J-Link with the serial number: " + str(serialno)
+                )
+                c_serialno = ctypes.c_uint32(serialno)
+                r = self.jl.JLINKARM_EMU_SelectByUSBSN(c_serialno)
+                if r < 0:
+                    raise pyJLinkException(
+                        "Error: Specific serial number not found on USB"
+                    )
 
         self.logger.debug("Opens the connection to J-Link")
         self.jl.JLINKARM_Open.restype = ctypes.c_char_p
