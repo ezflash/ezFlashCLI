@@ -323,7 +323,7 @@ class pyjlink(object):
                     found_device = device
                     break
             except Exception as ex:
-                self.logger.debug("Error loading J-Link Library: {}".format(ex))
+                self.logger.debug("Error reading from device: {}".format(ex))
                 continue
         c_acIn = ctypes.c_char_p(b"DisableInfoWinFlashDL")
         acOut = b" " * 80
