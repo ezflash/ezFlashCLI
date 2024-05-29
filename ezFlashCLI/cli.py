@@ -415,9 +415,9 @@ class ezFlashCLI:
 
     def go(self):
         """Reset the device and run."""
-        self.link.connect(self.args.jlink)
-        self.link.reset()
-        self.link.go()
+        self.importAndAssignDevice(str(self.deviceType.identifier))
+        self.da.connect(self.args.jlink)
+        self.da.reset()
 
     def probeDevice(self):
         """Look for attached smarbond device."""

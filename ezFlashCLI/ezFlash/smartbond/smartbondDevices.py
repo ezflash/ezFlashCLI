@@ -107,6 +107,13 @@ class da14xxx:
             raise Exception("Device not found")
         return id
 
+    def reset(self):
+        """Reset through jlink."""
+        if not self.link:
+            raise Exception("Calling reset before connecting")
+
+        self.link.reset()
+
     def get_flash(self, flashId, flash_db):
         """Get the flash device id and return its name.
 
@@ -1212,6 +1219,7 @@ class da1468x_da1469x_da1470x(da14xxx):
             my_data_array: bytes array
             address: destination address
         """
+        self.link.reset()
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
             self.FLASH_ARRAY_BASE + address, len(my_data_array), c_char_p(my_data_array)
@@ -1259,6 +1267,8 @@ class da1469x(da1468x_da1469x_da1470x):
     OTP_CFG_SCRIPT_ENTRY_SIZE = 4
     OTP_CFG_SCRIPT_ENTRY_CNT_MAX = 256
 
+    SYS_CTRL_REG = 0x50000024
+
     DEFAULT_IMAGE_ADDRESS = 0x2000
     DEFAULT_IMAGE_OFFSET = 0x400
 
@@ -1272,6 +1282,13 @@ class da1469x(da1468x_da1469x_da1470x):
         self.OTPC_PWORD_REG += self.OTPC_BASE
         self.OTPC_TIM1_REG += self.OTPC_BASE
         self.OTPC_TIM2_REG += self.OTPC_BASE
+
+    def reset(self):
+        """Reset through jlink."""
+        # Ensure the device is going through the bootrom
+        self.link.wr_mem(16, self.SYS_CTRL_REG, 0x000000D0)
+        self.link.reset()
+        self.link.go()
 
     def make_image_header(self, image):
         """Image header generation.
