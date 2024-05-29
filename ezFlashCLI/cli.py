@@ -143,7 +143,9 @@ class ezFlashCLI:
         elif self.args.operation == "go":
             self.probeDevice()
             logging.info("Smartbond chip: {}".format(self.deviceType.pretty_identifier))
-            self.go()
+            self.importAndAssignDevice(self.deviceType.identifier)
+            self.da.connect(self.args.jlink)
+            self.da.go()
 
         elif self.args.operation == "erase_flash":
             self.probeDevice()
@@ -412,12 +414,6 @@ class ezFlashCLI:
         self.da = eval("sbdev.{}".format(device))()
         if self.link.iphost:
             self.da.link.iphost = self.link.iphost
-
-    def go(self):
-        """Reset the device and run."""
-        self.link.connect(self.args.jlink)
-        self.link.reset()
-        self.link.go()
 
     def probeDevice(self):
         """Look for attached smarbond device."""
