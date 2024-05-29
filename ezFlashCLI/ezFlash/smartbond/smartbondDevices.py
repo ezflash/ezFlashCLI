@@ -86,6 +86,9 @@ class da14xxx:
     """Handler for the Smartbond devices Flash memory."""
 
     CLK_AMBA_REG = 0x50000000
+    SYS_CTRL_REG = 0x00  # To be replaced by subclasses
+    SYS_CTRL_REG_RESET_VAL = 0x00  # To be replaced by subclasses
+    SYS_CTRL_REG_SW_RESET_MSK = 0x8000
 
     def __init__(self, device=None):
         """Initalizate the da14xxxx devices class."""
@@ -151,6 +154,19 @@ class da14xxx:
         """Fallback function for OTP blank check."""
         logging.error("OTP not implemented for this device")
         sys.exit(1)
+
+    def go(self):
+        """Reset to ROM and start executing."""
+        self.link.reset()
+        if self.SYS_CTRL_REG:
+            self.link.wr_mem(16, self.SYS_CTRL_REG, self.SYS_CTRL_REG_RESET_VAL)
+            self.link.wr_mem(
+                16,
+                self.SYS_CTRL_REG,
+                self.SYS_CTRL_REG_RESET_VAL | self.SYS_CTRL_REG_SW_RESET_MSK,
+            )
+        self.link.reset()
+        self.link.go()
 
 
 class da1453x_da1458x(da14xxx):
@@ -523,6 +539,9 @@ class da14531(da1453x_da1458x):
     OTPC_MODE_RINI = 5  # OTP cell can be read in RINI margin read mode
     OTPC_MODE_AREAD = 6  # OTP cell can be read by the internal DMA
 
+    SYS_CTRL_REG = 0x50000012
+    SYS_CTRL_REG_RESET_VAL = 0x20
+
     OTPC_TIM1_REG_RESET = 0x0999000F
     OTPC_TIM2_REG_RESET = 0xA4040409
     OTP_START = 0x07F80000
@@ -542,6 +561,25 @@ class da14531(da1453x_da1458x):
     def __init__(self):
         """Initalizate the da14xxxx parent devices class."""
         da1453x_da1458x.__init__(self, b"DA14531")
+
+    def go(self):
+        """Reset to ROM and start executing."""
+        self.link.reset()
+        debugger_setting = (
+            self.link.rd_mem(16, self.SYS_CTRL_REG, 1)[0] & 0x180
+        )  # read the current debugger setup
+        self.link.wr_mem(
+            16, self.SYS_CTRL_REG, self.SYS_CTRL_REG_RESET_VAL | debugger_setting
+        )
+        self.link.wr_mem(
+            16,
+            self.SYS_CTRL_REG,
+            self.SYS_CTRL_REG_RESET_VAL
+            | self.SYS_CTRL_REG_SW_RESET_MSK
+            | debugger_setting,
+        )
+        self.link.reset()
+        self.link.go()
 
     def spi_cs_low(self):
         """Set the flash CS low."""
@@ -747,6 +785,9 @@ class da14585(da1453x_da1458x):
     SPI_CS_PIN = 3
     SPI_DI_PIN = 5
     SPI_DO_PIN = 6
+
+    SYS_CTRL_REG = 0x50000012
+    SYS_CTRL_REG_RESET_VAL = 0xA0
 
     SPI_CTRL_REG1 = 0x50001208
     SPI_RX_TX_REG0 = 0x50001202
@@ -1235,6 +1276,9 @@ class da1469x(da1468x_da1469x_da1470x):
     PRODUCT_HEADER_SIZE = 0x1000
     IMG_IVT_OFFSET = 0x400
     CACHE_FLASH_REG = 0x100C0040
+
+    SYS_CTRL_REG = 0x50000024
+    SYS_CTRL_REG_RESET_VAL = 0xA0
 
     OTPC_MODE_REG = 0x00  # Mode register
     OTPC_STAT_REG = 0x04  # Status register
@@ -1727,6 +1771,9 @@ class da1470x(da1469x):
     FLASH_READ_ARRAY_BASE = 0x38000000
     FLASH_ARRAY_BASE = 0x38000000
 
+    SYS_CTRL_REG = 0x50000024
+    SYS_CTRL_REG_RESET_VAL = 0x80
+
     DEFAULT_IMAGE_ADDRESS = 0x3000
     DEFAULT_IMAGE_OFFSET = 0x400
 
@@ -1823,6 +1870,9 @@ class da14592(da1469x):
     HW_FCU_FLASH_PROG_MODE_ERASE_BLOCK = 0x3
     HW_FCU_FLASH_ACCESS_MODE_READ = 0x0
     HW_FCU_FLASH_ACCESS_MODE_WRITE_ERASE = 0x8
+
+    SYS_CTRL_REG = 0x50000024
+    SYS_CTRL_REG_RESET_VAL = 0xA0
 
     def __init__(self):
         """Initalizate the da14xxxx parent devices class."""
@@ -1981,6 +2031,9 @@ class da1468x(da1468x_da1469x_da1470x):
     QPSPIC_BASE = 0x0C000000
     FLASH_READ_ARRAY_BASE = 0x08000000
     FLASH_ARRAY_BASE = 0x08000000
+
+    SYS_CTRL_REG = 0x50000012
+    SYS_CTRL_REG_RESET_VAL = 0xA0
 
     def __init__(self, device=None):
         """Initalizate the da14xxxx parent devices class."""
