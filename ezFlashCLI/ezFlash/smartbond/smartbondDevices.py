@@ -1336,7 +1336,7 @@ class da1469x(da1468x_da1469x_da1470x):
         for i in range(6):
             buff += struct.pack("b", 0x0)
         # add the time stamp
-        buff += struct.pack("<I", int(time.time()))
+        buff += struct.pack("<I", 0)
         buff += struct.pack("<I", self.IMG_IVT_OFFSET)
         buff += struct.pack("<H", 0x22AA)
         buff += struct.pack("<H", 0x0)
