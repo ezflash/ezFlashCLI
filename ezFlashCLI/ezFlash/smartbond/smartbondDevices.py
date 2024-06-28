@@ -1271,6 +1271,9 @@ class da1468x_da1469x_da1470x(da14xxx):
 class da1469x(da1468x_da1469x_da1470x):
     """Derived class for the da1469x devices."""
 
+    FLASH_READ_ARRAY_BASE = 0x16000000
+    FLASH_ARRAY_BASE = 0x16000000
+
     OTPC_BASE = 0x30070000
     QPSPIC_BASE = 0x38000000
     PRODUCT_HEADER_SIZE = 0x1000
@@ -1306,7 +1309,7 @@ class da1469x(da1468x_da1469x_da1470x):
     DEFAULT_IMAGE_ADDRESS = 0x2000
     DEFAULT_IMAGE_OFFSET = 0x400
 
-    def __init__(self, name=b"DA1469x"):
+    def __init__(self, name=b"DA14695"):
         """Initalizate the da14xxxx parent devices class."""
         da1468x_da1469x_da1470x.__init__(self, name)
 
