@@ -1,26 +1,26 @@
 <DataBase>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14531" WorkRAMAddr="0x7FC1000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
+    <ChipInfo Vendor="Renesas"   Name="DA14531" WorkRAMAddr="0x7FC1000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
     <FlashBankInfo Name="macr. Flash" BaseAddr="0x16000000" MaxSize="0x40000" Loader="segger_flash_loader_531.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14585" WorkRAMAddr="0x7FC0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
+    <ChipInfo Vendor="Renesas"   Name="DA14585" WorkRAMAddr="0x7FC0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
     <FlashBankInfo Name="macr. Flash" BaseAddr="0x16000000" MaxSize="0x40000" Loader="segger_flash_loader_585.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14681" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
+    <ChipInfo Vendor="Renesas"   Name="DA14681" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
     <FlashBankInfo Name="win. Flash" BaseAddr="0x08000000" MaxSize="0x100000" Loader="segger_flash_loader_68x.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14683" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
+    <ChipInfo Vendor="Renesas"   Name="DA14683" WorkRAMAddr="0x7FD0000" WorkRAMSize="0x4000" Core="JLINK_CORE_CORTEX_M0" />
     <FlashBankInfo Name="win. Flash" BaseAddr="0x08000000" MaxSize="0x100000" Loader="segger_flash_loader_68x.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA14592" WorkRAMAddr="0x810000" WorkRAMSize="0x10000" Core="JLINK_CORE_CORTEX_M33" />
+    <ChipInfo Vendor="Renesas"   Name="DA14592" WorkRAMAddr="0x810000" WorkRAMSize="0x10000" Core="JLINK_CORE_CORTEX_M33" />
     <FlashBankInfo Name="EFLASH" BaseAddr="0x31000000" MaxSize="0x40800" Loader="segger_flash_loader_59x_eflash.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
   <Device>
-    <ChipInfo Vendor="Dialog Semiconductor"   Name="DA1470x" WorkRAMAddr="0x10010000" WorkRAMSize="0x00040000" Core="JLINK_CORE_CORTEX_M33" />
+    <ChipInfo Vendor="Renesas"   Name="DA1470x" WorkRAMAddr="0x10010000" WorkRAMSize="0x00040000" Core="JLINK_CORE_CORTEX_M33" />
     <FlashBankInfo Name="OQSPIC Flash" BaseAddr="0x38000000" MaxSize="0x200000" Loader="segger_flash_loader_70x_oflash.elf" LoaderType="FLASH_ALGO_TYPE_OPEN" />
   </Device>
 </DataBase>
