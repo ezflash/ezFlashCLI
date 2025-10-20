@@ -284,6 +284,9 @@ class da1453x_da1458x(da14xxx):
         # read JEADEC id
         self.spi_set_bitmode(self.SPI_MODE_8BIT)
         self.spi_cs_low()
+        self.spi_access8(HW_QSPI_COMMON_CMD.RELEASE_POWER_DOWN)
+        self.spi_cs_high()
+        self.spi_cs_low()
         self.spi_access8(HW_QSPI_COMMON_CMD.READ_JEDEC_ID)
         manufacturer = self.spi_access8(0xFF)
         deviceId = self.spi_access8(0xFF)
