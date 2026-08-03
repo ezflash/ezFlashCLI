@@ -696,7 +696,7 @@ class da14531(da1453x_da1458x):
 
         # Default timings
         self.link.wr_mem(32, self.OTPC_TIM1_REG, self.OTPC_TIM1_REG_RESET)
-        self.link.wr_mem(32, self.OTPC_TIM2_REG, self.OTPC_TIM1_REG_RESET)
+        self.link.wr_mem(32, self.OTPC_TIM2_REG, self.OTPC_TIM2_REG_RESET)
 
     def otp_blank_check(self):
         """Check if the program area of OTP is blank."""
@@ -1588,6 +1588,17 @@ class da1469x(da1468x_da1469x_da1470x):
         return 1
 
     def otp_init(self):
+        # Reset cpu to return clocks to default
+        self.link.reset()
+        if self.SYS_CTRL_REG:
+            self.link.wr_mem(16, self.SYS_CTRL_REG, self.SYS_CTRL_REG_RESET_VAL)
+            self.link.wr_mem(
+                16,
+                self.SYS_CTRL_REG,
+                self.SYS_CTRL_REG_RESET_VAL | self.SYS_CTRL_REG_SW_RESET_MSK,
+            )
+        self.link.reset()
+
         """Init the OTP controller."""
         # Enable OTPC clock
         clkreg = self.link.rd_mem(16, self.CLK_AMBA_REG, 1)[0]
