@@ -1572,8 +1572,8 @@ class da1469x(da1468x_da1469x_da1470x):
                     return 0
                 active_fw_image_address = parameters["active_fw_image_address"]
             update_fw_image_address = active_fw_image_address
-            self.log.debug(f"active_fw_image_address {str(active_fw_image_address)}")
-            self.log.debug(f"update_fw_image_address {str(update_fw_image_address)}")
+            self.log.debug("active_fw_image_address 0x{:x}".format(active_fw_image_address))
+            self.log.debug("update_fw_image_address 0x{:x}".format(update_fw_image_address))
             self.flash_program_data(fileData, active_fw_image_address)
 
             self.log.info("Program product header")
@@ -2016,8 +2016,9 @@ class da1459x(da1469x):
                 active_fw_image_address = parameters["active_fw_image_address"]
             update_fw_image_address = active_fw_image_address
             self.log.info("Program bin to 0x%X", active_fw_image_address)
-            self.log.debug(f"active_fw_image_address {str(active_fw_image_address)}")
-            self.log.debug(f"update_fw_image_address {str(update_fw_image_address)}")
+            self.log.debug("active_fw_image_address 0x{:x}".format(active_fw_image_address))
+            self.log.debug("update_fw_image_address 0x{:x}".format(update_fw_image_address))
+
             self.flash_program_data(fileData, active_fw_image_address)
 
             ph = self.make_product_header(

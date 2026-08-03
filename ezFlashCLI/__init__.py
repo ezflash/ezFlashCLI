@@ -19,31 +19,3 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-import subprocess
-from importlib import metadata
-
-
-def get_version_from_git():
-    """Generate the version string from git describe."""
-    # grab the version from git describe
-    version = (
-        subprocess.check_output(
-            ["git", "describe", "--always", "--long", "--dirty", "--tags"]
-        )
-        .strip()
-        .decode("utf-8")[1:]
-    )
-    # process the string to be PEP 440 compliant
-    version = version.replace("-", ".dev", 1).replace("-", "+", 1).replace("-", ".", 1)
-
-    return version
-
-
-try:
-    __version__ = metadata.version("ezFlashCLI")
-except Exception:
-    try:
-        # try to get the version from git
-        __version__ = get_version_from_git()
-    except Exception:
-        __version__ = "unkown-requires-git"
