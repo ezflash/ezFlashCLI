@@ -415,6 +415,8 @@ class da1453x_da1458x(da14xxx):
         if self.flash_get_software_protection() != 0:
             self.flash_software_unprotect()
 
+        my_data_array += b"\xFF" * (512 - len(my_data_array))
+
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
             self.FLASH_ARRAY_BASE + address, len(fileData), c_char_p(fileData)
@@ -1585,6 +1587,10 @@ class da1469x(da1468x_da1469x_da1470x):
             self.flash_program_data(ph, 0x0)
             self.flash_program_data(ph, 0x1000)
         self.log.info("Program success")
+        
+        # reset and run the cpu
+        self.link.reset()
+        
         return 1
 
     def otp_init(self):
