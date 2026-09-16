@@ -21,8 +21,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-__version__ = "1.0.1"
-
 import argparse
 import json
 import logging
@@ -30,6 +28,7 @@ import os
 import sys
 
 import ezFlashCLI.ezFlash.smartbond.smartbondDevices as sbdev
+from ezFlashCLI import __version__
 from ezFlashCLI.ezFlash.pyjlink import pyjlink
 
 
