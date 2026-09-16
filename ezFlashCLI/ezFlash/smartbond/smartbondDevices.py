@@ -1594,13 +1594,14 @@ class da1469x(da1468x_da1469x_da1470x):
             self.flash_program_data(ph, 0x0)
             self.flash_program_data(ph, 0x1000)
         self.log.info("Program success")
-        
+
         # reset and run the cpu
         self.link.reset()
-        
+
         return 1
 
     def otp_init(self):
+        """Init the OTP controller."""
         # Reset cpu to return clocks to default
         self.link.reset()
         if self.SYS_CTRL_REG:
@@ -1612,7 +1613,6 @@ class da1469x(da1468x_da1469x_da1470x):
             )
         self.link.reset()
 
-        """Init the OTP controller."""
         # Enable OTPC clock
         clkreg = self.link.rd_mem(16, self.CLK_AMBA_REG, 1)[0]
         self.link.wr_mem(16, self.CLK_AMBA_REG, clkreg | 0x200)
