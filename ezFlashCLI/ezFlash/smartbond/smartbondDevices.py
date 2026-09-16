@@ -34,6 +34,8 @@ from ..pyjlink import pyjlink
 
 SPI_FLASH_PAGE_SIZE = 256
 SPI_FLASH_SECTOR_SIZE = 4096
+# The J-Link flash loader rejects very short downloads, pad them out to this size
+MIN_FLASH_DOWNLOAD_SIZE = 512
 _69X_OTP_BASE_ADDR = 0x10080000
 _69X_OTP_CFG_SCRIPT_ADDR = _69X_OTP_BASE_ADDR + 0x0C00
 
@@ -415,6 +417,9 @@ class da1453x_da1458x(da14xxx):
         if self.flash_get_software_protection() != 0:
             self.flash_software_unprotect()
 
+        if len(fileData) < MIN_FLASH_DOWNLOAD_SIZE:
+            fileData += b"\xFF" * (MIN_FLASH_DOWNLOAD_SIZE - len(fileData))
+
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
             self.FLASH_ARRAY_BASE + address, len(fileData), c_char_p(fileData)
@@ -696,7 +701,7 @@ class da14531(da1453x_da1458x):
 
         # Default timings
         self.link.wr_mem(32, self.OTPC_TIM1_REG, self.OTPC_TIM1_REG_RESET)
-        self.link.wr_mem(32, self.OTPC_TIM2_REG, self.OTPC_TIM1_REG_RESET)
+        self.link.wr_mem(32, self.OTPC_TIM2_REG, self.OTPC_TIM2_REG_RESET)
 
     def otp_blank_check(self):
         """Check if the program area of OTP is blank."""
@@ -1255,6 +1260,8 @@ class da1468x_da1469x_da1470x(da14xxx):
             my_data_array: bytes array
             address: destination address
         """
+        if len(my_data_array) < MIN_FLASH_DOWNLOAD_SIZE:
+            my_data_array += b"\xFF" * (MIN_FLASH_DOWNLOAD_SIZE - len(my_data_array))
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
             self.FLASH_ARRAY_BASE + address, len(my_data_array), c_char_p(my_data_array)
@@ -1273,8 +1280,10 @@ class da1468x_da1469x_da1470x(da14xxx):
 class da1469x(da1468x_da1469x_da1470x):
     """Derived class for the da1469x devices."""
 
-    FLASH_READ_ARRAY_BASE = 0x16000000
-    FLASH_ARRAY_BASE = 0x16000000
+    # Must match the FlashBankInfo BaseAddr of the device entry that J-Link
+    # resolves __init__'s device name to, see third-party/segger/JLinkDevices.xml
+    FLASH_READ_ARRAY_BASE = 0x36000000
+    FLASH_ARRAY_BASE = 0x36000000
 
     OTPC_BASE = 0x30070000
     QPSPIC_BASE = 0x38000000
@@ -1311,7 +1320,7 @@ class da1469x(da1468x_da1469x_da1470x):
     DEFAULT_IMAGE_ADDRESS = 0x2000
     DEFAULT_IMAGE_OFFSET = 0x400
 
-    def __init__(self, name=b"DA14695"):
+    def __init__(self, name=b"DA1469x"):
         """Initalizate the da14xxxx parent devices class."""
         da1468x_da1469x_da1470x.__init__(self, name)
 
@@ -1572,8 +1581,8 @@ class da1469x(da1468x_da1469x_da1470x):
                     return 0
                 active_fw_image_address = parameters["active_fw_image_address"]
             update_fw_image_address = active_fw_image_address
-            self.log.debug(f"active_fw_image_address {str(active_fw_image_address)}")
-            self.log.debug(f"update_fw_image_address {str(update_fw_image_address)}")
+            self.log.debug("active_fw_image_address 0x{:x}".format(active_fw_image_address))
+            self.log.debug("update_fw_image_address 0x{:x}".format(update_fw_image_address))
             self.flash_program_data(fileData, active_fw_image_address)
 
             self.log.info("Program product header")
@@ -1585,10 +1594,25 @@ class da1469x(da1468x_da1469x_da1470x):
             self.flash_program_data(ph, 0x0)
             self.flash_program_data(ph, 0x1000)
         self.log.info("Program success")
+
+        # reset and run the cpu
+        self.link.reset()
+
         return 1
 
     def otp_init(self):
         """Init the OTP controller."""
+        # Reset cpu to return clocks to default
+        self.link.reset()
+        if self.SYS_CTRL_REG:
+            self.link.wr_mem(16, self.SYS_CTRL_REG, self.SYS_CTRL_REG_RESET_VAL)
+            self.link.wr_mem(
+                16,
+                self.SYS_CTRL_REG,
+                self.SYS_CTRL_REG_RESET_VAL | self.SYS_CTRL_REG_SW_RESET_MSK,
+            )
+        self.link.reset()
+
         # Enable OTPC clock
         clkreg = self.link.rd_mem(16, self.CLK_AMBA_REG, 1)[0]
         self.link.wr_mem(16, self.CLK_AMBA_REG, clkreg | 0x200)
@@ -2005,8 +2029,9 @@ class da1459x(da1469x):
                 active_fw_image_address = parameters["active_fw_image_address"]
             update_fw_image_address = active_fw_image_address
             self.log.info("Program bin to 0x%X", active_fw_image_address)
-            self.log.debug(f"active_fw_image_address {str(active_fw_image_address)}")
-            self.log.debug(f"update_fw_image_address {str(update_fw_image_address)}")
+            self.log.debug("active_fw_image_address 0x{:x}".format(active_fw_image_address))
+            self.log.debug("update_fw_image_address 0x{:x}".format(update_fw_image_address))
+
             self.flash_program_data(fileData, active_fw_image_address)
 
             ph = self.make_product_header(

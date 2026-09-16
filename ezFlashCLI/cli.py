@@ -21,7 +21,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 import argparse
 import json
 import logging
@@ -202,7 +201,7 @@ class ezFlashCLI:
                         data += bytes().fromhex(d[2:])
                     except Exception as ex:
                         logging.error("Failed to decode byte: {}: {}".format(d, ex))
-                        sys.exit(0)
+                        sys.exit(1)
                 else:
                     data += int(d).to_bytes(1, "little")
 
@@ -218,8 +217,7 @@ class ezFlashCLI:
                 logging.info("Flash write success")
             else:
                 logging.error("Flash write failed")
-
-            sys.exit(1)
+                sys.exit(1)
 
         elif self.args.operation == "write_flash":
             try:
@@ -417,7 +415,8 @@ class ezFlashCLI:
         """
         assert sbdev  # appease Flake8
         if not hasattr(sbdev, device):
-            raise Exception(f"cannot find device interface class `{device}'")
+            logging.error("Cannot find device interface class")
+            sys.exit(1)
         self.da = getattr(sbdev, device)()
         if self.link.iphost:
             self.da.link.iphost = self.link.iphost
