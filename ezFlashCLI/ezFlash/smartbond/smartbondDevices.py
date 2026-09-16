@@ -34,6 +34,8 @@ from ..pyjlink import pyjlink
 
 SPI_FLASH_PAGE_SIZE = 256
 SPI_FLASH_SECTOR_SIZE = 4096
+# The J-Link flash loader rejects very short downloads, pad them out to this size
+MIN_FLASH_DOWNLOAD_SIZE = 512
 _69X_OTP_BASE_ADDR = 0x10080000
 _69X_OTP_CFG_SCRIPT_ADDR = _69X_OTP_BASE_ADDR + 0x0C00
 
@@ -415,7 +417,8 @@ class da1453x_da1458x(da14xxx):
         if self.flash_get_software_protection() != 0:
             self.flash_software_unprotect()
 
-        my_data_array += b"\xFF" * (512 - len(my_data_array))
+        if len(fileData) < MIN_FLASH_DOWNLOAD_SIZE:
+            fileData += b"\xFF" * (MIN_FLASH_DOWNLOAD_SIZE - len(fileData))
 
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
@@ -1257,6 +1260,8 @@ class da1468x_da1469x_da1470x(da14xxx):
             my_data_array: bytes array
             address: destination address
         """
+        if len(my_data_array) < MIN_FLASH_DOWNLOAD_SIZE:
+            my_data_array += b"\xFF" * (MIN_FLASH_DOWNLOAD_SIZE - len(my_data_array))
         self.link.jl.JLINKARM_BeginDownload(c_uint32(0))
         self.link.jl.JLINKARM_WriteMem(
             self.FLASH_ARRAY_BASE + address, len(my_data_array), c_char_p(my_data_array)
@@ -1275,8 +1280,10 @@ class da1468x_da1469x_da1470x(da14xxx):
 class da1469x(da1468x_da1469x_da1470x):
     """Derived class for the da1469x devices."""
 
-    FLASH_READ_ARRAY_BASE = 0x16000000
-    FLASH_ARRAY_BASE = 0x16000000
+    # Must match the FlashBankInfo BaseAddr of the device entry that J-Link
+    # resolves __init__'s device name to, see third-party/segger/JLinkDevices.xml
+    FLASH_READ_ARRAY_BASE = 0x36000000
+    FLASH_ARRAY_BASE = 0x36000000
 
     OTPC_BASE = 0x30070000
     QPSPIC_BASE = 0x38000000
@@ -1313,7 +1320,7 @@ class da1469x(da1468x_da1469x_da1470x):
     DEFAULT_IMAGE_ADDRESS = 0x2000
     DEFAULT_IMAGE_OFFSET = 0x400
 
-    def __init__(self, name=b"DA14695"):
+    def __init__(self, name=b"DA1469x"):
         """Initalizate the da14xxxx parent devices class."""
         da1468x_da1469x_da1470x.__init__(self, name)
 
